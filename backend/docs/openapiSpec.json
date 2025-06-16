@@ -1,0 +1,1137 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "CineVerse API",
+    "version": "1.0.0",
+    "description": "API for managing and tracking movie and series lists.",
+    "contact": {
+      "name": "G&H",
+      "email": "hoab2205983@student.ctu.edu.vn"
+    }
+  },
+  "servers": [{
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://api.cineverse.com",
+      "description": "Production server"
+    }
+  ],
+  "security": [{
+    "bearerAuth": []
+  }],
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "description": "Allows a new user to register an account.",
+        "operationId": "registerUser",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Login user",
+        "description": "Authenticates a user and returns an authentication token.",
+        "operationId": "loginUser",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User logged in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/v1/movies": {
+      "get": {
+        "summary": "Get a list of movies/series",
+        "description": "Retrieves a paginated list of movies/series, with optional filtering and search.",
+        "operationId": "getMovieList",
+        "parameters": [{
+            "$ref": "#/components/parameters/searchQueryParam"
+          },
+          {
+            "$ref": "#/components/parameters/genreParam"
+          },
+          {
+            "$ref": "#/components/parameters/statusParam"
+          },
+          {
+            "$ref": "#/components/parameters/yearParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
+          },
+          {
+            "$ref": "#/components/parameters/pageParam"
+          }
+        ],
+        "tags": [
+          "Movie Discovery"
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of movies/series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movies": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Movie"
+                          }
+                        },
+                        "metadata": {
+                          "$ref": "#/components/schemas/PaginationMetadata"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new movie/series entry (Admin only)",
+        "description": "Allows an administrator to add a new movie or series to the database.",
+        "operationId": "createMovie",
+        "tags": [
+          "Movie Management (Admin)"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Movie"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Movie/series created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movie": {
+                          "$ref": "#/components/schemas/Movie"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/403Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/v1/movies/{id}": {
+      "get": {
+        "summary": "Get movie/series by ID",
+        "description": "Retrieves detailed information for a specific movie or series by its ID.",
+        "operationId": "getMovieById",
+        "parameters": [{
+          "$ref": "#/components/parameters/movieIdParam"
+        }],
+        "tags": [
+          "Movie Discovery"
+        ],
+        "responses": {
+          "200": {
+            "description": "Detailed information about movie/series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movie": {
+                          "$ref": "#/components/schemas/Movie"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/404NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update movie/series by ID (Admin only)",
+        "description": "Allows an administrator to update an existing movie or series entry.",
+        "operationId": "updateMovie",
+        "parameters": [{
+          "$ref": "#/components/parameters/movieIdParam"
+        }],
+        "tags": [
+          "Movie Management (Admin)"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Movie"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie/series updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movie": {
+                          "$ref": "#/components/schemas/Movie"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/403Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/404NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete movie/series by ID (Admin only)",
+        "description": "Allows an administrator to delete a movie or series entry.",
+        "operationId": "deleteMovie",
+        "parameters": [{
+          "$ref": "#/components/parameters/movieIdParam"
+        }],
+        "tags": [
+          "Movie Management (Admin)"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200NoData"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/403Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/404NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/v1/users/me/movielist": {
+      "get": {
+        "summary": "Get current user's movie/series list",
+        "description": "Retrieves the movie/series list for the authenticated user, with optional filtering and pagination.",
+        "operationId": "getUserMovieList",
+        "parameters": [{
+            "$ref": "#/components/parameters/userListStatusParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
+          },
+          {
+            "$ref": "#/components/parameters/pageParam"
+          }
+        ],
+        "tags": [
+          "User Movie List"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "description": "A list of movie/series entries for the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "movieList": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/UserMovieEntry"
+                          }
+                        },
+                        "metadata": {
+                          "$ref": "#/components/schemas/PaginationMetadata"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/v1/users/me/movielist/{movieId}": {
+      "post": {
+        "summary": "Add movie/series to user's list",
+        "description": "Adds a specific movie or series to the authenticated user's personal list.",
+        "operationId": "addMovieToUserList",
+        "parameters": [{
+          "$ref": "#/components/parameters/movieIdParam"
+        }],
+        "tags": [
+          "User Movie List"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["watching", "completed", "on_hold", "dropped", "plan_to_watch"],
+                    "description": "Current status of the movie/series for the user"
+                  },
+                  "progress": {
+                    "type": "integer",
+                    "description": "Current progress (e.g., episode count for series, 1 for movie if watched)",
+                    "minimum": 0
+                  },
+                  "score": {
+                    "type": "integer",
+                    "description": "User's score for the movie/series (1-10)",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Personal notes about the movie/series",
+                    "nullable": true
+                  }
+                },
+                "required": ["status"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Movie/series added to list successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userMovieEntry": {
+                          "$ref": "#/components/schemas/UserMovieEntry"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/404NotFound"
+          },
+          "409": {
+            "description": "Conflict - Movie/series already in user's list"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update movie/series entry in user's list",
+        "description": "Updates progress, status, score, or notes for a movie or series in the authenticated user's list.",
+        "operationId": "updateUserMovieEntry",
+        "parameters": [{
+          "$ref": "#/components/parameters/movieIdParam"
+        }],
+        "tags": [
+          "User Movie List"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["watching", "completed", "on_hold", "dropped", "plan_to_watch"],
+                    "description": "Updated status of the movie/series for the user"
+                  },
+                  "progress": {
+                    "type": "integer",
+                    "description": "Updated progress (e.g., episode count for series, 1 for movie if watched)",
+                    "minimum": 0
+                  },
+                  "score": {
+                    "type": "integer",
+                    "description": "Updated user's score for the movie/series (1-10)",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Updated personal notes about the movie/series",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie/series entry updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userMovieEntry": {
+                          "$ref": "#/components/schemas/UserMovieEntry"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/404NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove movie/series from user's list",
+        "description": "Removes a specific movie or series from the authenticated user's personal list.",
+        "operationId": "removeMovieFromUserList",
+        "parameters": [{
+          "$ref": "#/components/parameters/movieIdParam"
+        }],
+        "tags": [
+          "User Movie List"
+        ],
+        "security": [{
+          "bearerAuth": []
+        }],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200NoData"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/404NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/500InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "200NoData": {
+        "description": "Operation successful, no data returned",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "description": "The response status",
+                  "enum": [
+                    "success"
+                  ]
+                },
+                "data": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "default": null,
+                  "description": "The response data"
+                }
+              }
+            }
+          }
+        }
+      },
+      "400BadRequest": {
+        "description": "Bad request - Invalid input or parameters",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["error"]
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Detailed error message"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401Unauthorized": {
+        "description": "Unauthorized - Authentication required or failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["error"]
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Detailed error message"
+                }
+              }
+            }
+          }
+        }
+      },
+      "403Forbidden": {
+        "description": "Forbidden - User does not have necessary permissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["error"]
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Detailed error message"
+                }
+              }
+            }
+          }
+        }
+      },
+      "404NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["error"]
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Detailed error message"
+                }
+              }
+            }
+          }
+        }
+      },
+      "500InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["error"]
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Detailed error message"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique user ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "User's unique username",
+            "minLength": 3
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin"],
+            "default": "user",
+            "readOnly": true,
+            "description": "User's role (e.g., user, admin)"
+          }
+        },
+        "required": ["username", "email"]
+      },
+      "AuthRegisterRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Desired username",
+            "minLength": 3
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "Desired password",
+            "minLength": 6
+          }
+        },
+        "required": ["username", "email", "password"]
+      },
+      "AuthLoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "User's password"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "JWT authentication token"
+              },
+              "user": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "Movie": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique ID of the movie/series (e.g., from external API or internal)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Main title of the movie/series"
+          },
+          "synopsis": {
+            "type": "string",
+            "description": "Brief summary of the movie/series' plot",
+            "nullable": true
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of genres associated with the movie/series"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["movie", "series"],
+            "description": "Type of content (movie or series)"
+          },
+          "number_of_episodes": {
+            "type": "integer",
+            "description": "Total number of episodes (for series)",
+            "minimum": 1,
+            "nullable": true
+          },
+          "runtime_minutes": {
+            "type": "integer",
+            "description": "Runtime of the movie in minutes (for movies)",
+            "minimum": 1,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": ["released", "in_production", "upcoming"],
+            "description": "Production/release status of the movie/series"
+          },
+          "release_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Release date of the movie/series",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "format": "url",
+            "description": "URL to the main image/poster of the movie/series",
+            "nullable": true
+          },
+          "trailer_url": {
+            "type": "string",
+            "format": "url",
+            "description": "URL to the movie/series' trailer (e.g., YouTube)",
+            "nullable": true
+          },
+          "score": {
+            "type": "number",
+            "format": "float",
+            "description": "Average score of the movie/series (e.g., 1-10 scale)",
+            "minimum": 1,
+            "maximum": 10,
+            "nullable": true
+          },
+          "creators": {
+            "type": "string",
+            "description": "Company that produced the movie/series",
+            "nullable": true
+          }
+        },
+        "required": ["title", "type", "status"]
+      },
+      "UserMovieEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique ID for this user's movie/series entry"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "ID of the user who owns this entry",
+            "readOnly": true
+          },
+          "movie_id": {
+            "type": "string",
+            "description": "ID of the movie/series",
+            "readOnly": true
+          },
+          "movie_title": {
+            "type": "string",
+            "description": "Title of the movie/series (for convenience)",
+            "readOnly": true
+          },
+          "status": {
+            "type": "string",
+            "enum": ["watching", "completed", "on_hold", "dropped", "plan_to_watch"],
+            "description": "Current status of the movie/series for the user"
+          },
+          "progress": {
+            "type": "integer",
+            "description": "Current progress (e.g., episode count for series, 1 for movie if watched)",
+            "minimum": 0,
+            "default": 0
+          },
+          "score": {
+            "type": "integer",
+            "description": "User's score for the movie/series (1-10)",
+            "minimum": 1,
+            "maximum": 10,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "description": "Personal notes about the movie/series",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the last update to this entry",
+            "readOnly": true
+          }
+        },
+        "required": ["user_id", "movie_id", "status"]
+      },
+      "PaginationMetadata": {
+        "type": "object",
+        "properties": {
+          "totalRecords": {
+            "type": "integer",
+            "default": 0,
+            "description": "The total number of records"
+          },
+          "firstPage": {
+            "type": "integer",
+            "default": 1,
+            "description": "The first page"
+          },
+          "lastPage": {
+            "type": "integer",
+            "default": 1,
+            "description": "The last page"
+          },
+          "page": {
+            "type": "integer",
+            "default": 1,
+            "description": "The current page"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10,
+            "description": "The number of records per page"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "movieIdParam": {
+        "name": "id",
+        "description": "Movie/Series ID",
+        "required": true,
+        "in": "path",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "limitParam": {
+        "name": "limit",
+        "description": "Number of records per page",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100
+        },
+        "required": false
+      },
+      "pageParam": {
+        "name": "page",
+        "description": "Page number of records",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1
+        },
+        "required": false
+      },
+      "searchQueryParam": {
+        "name": "title",
+        "description": "Search query for movie/series title",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        },
+        "required": false
+      },
+      "genreParam": {
+        "name": "genre",
+        "description": "Filter movie/series by genre (e.g., Action, Comedy)",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        },
+        "required": false
+      },
+      "statusParam": {
+        "name": "status",
+        "description": "Filter movie/series by production/release status (released, in_production, upcoming)",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": ["released", "in_production", "upcoming"]
+        },
+        "required": false
+      },
+      "yearParam": {
+        "name": "year",
+        "description": "Filter movie/series by release year (e.g., 2023)",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1900
+        },
+        "required": false
+      },
+      "userListStatusParam": {
+        "name": "status",
+        "description": "Filter user's movie/series list by status (watching, completed, on_hold, dropped, plan_to_watch)",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": ["watching", "completed", "on_hold", "dropped", "plan_to_watch"]
+        },
+        "required": false
+      }
+    }
+  },
+  "tags": [{
+      "name": "Authentication",
+      "description": "User authentication operations (login, register)"
+    },
+    {
+      "name": "Movie Discovery",
+      "description": "Operations for browsing and searching movies/series"
+    },
+    {
+      "name": "User Movie List",
+      "description": "Operations for managing personal movie/series lists"
+    },
+    {
+      "name": "Movie Management (Admin)",
+      "description": "Admin-only operations for managing movie/series data"
+    }
+  ]
+}
