@@ -13,13 +13,13 @@ app.use(express.urlencoded({ extended: true })); // Cho phép Express đọc d�
 app.use(cors()); // Cho phép tất cả các nguồn truy cập (có thể cấu hình cụ thể hơn trong production)
 
 // 2. Định nghĩa các routes (chúng ta sẽ tạo các file này sau)
-// const authRoutes = require('./routes/authRoutes');
-// const movieRoutes = require('./routes/movieRoutes');
+const authRoutes = require("./routes/authRoutes");
+const movieRoutes = require("./routes/movieRoutes");
 // const userRoutes = require('./routes/userRoutes');
 // const reviewRoutes = require('./routes/reviewRoutes');
 
-// app.use('/api/auth', authRoutes);
-// app.use('/api/movies', movieRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/movies", movieRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/reviews', reviewRoutes);
 
@@ -28,9 +28,9 @@ app.use(cors()); // Cho phép tất cả các nguồn truy cập (có thể cấ
 const swaggerDoc = require("../docs/openapiSpec.json"); // Import file JSON đã chuyển đổi từ YAML
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
-// 4. Middleware xử lý lỗi (sẽ tạo chi tiết sau)
-// const errorHandler = require('./middlewares/errorHandler');
-// app.use(errorHandler);
+// 4. Middleware xử lý lỗi
+const errorHandler = require("./middlewares/errorHandler");
+app.use(errorHandler);
 
 // Endpoint kiểm tra server hoạt động
 app.get("/", (req, res) => {
