@@ -1,4 +1,3 @@
-// src/db/migrations/[timestamp]_create_watchlists_table.js
 exports.up = function (knex) {
   return knex.schema.createTable("watchlists", function (table) {
     table

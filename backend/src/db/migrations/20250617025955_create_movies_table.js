@@ -1,4 +1,3 @@
-// src/db/migrations/[timestamp]_create_movies_table.js
 exports.up = function (knex) {
   return knex.schema.createTable("movies", function (table) {
     table.uuid("movie_id").primary().defaultTo(knex.raw("gen_random_uuid()"));
@@ -15,11 +14,8 @@ exports.up = function (knex) {
       .notNullable()
       .defaultTo("released")
       .checkIn(["released", "airing", "upcoming", "cancelled"]);
-    table
-      .string("type", 20)
-      .notNullable()
-      .checkIn(["movie", "tv_series", "anime_tv", "anime_movie"]);
-    table.decimal("average_rating", 3, 1).notNullable().defaultTo(0.0);
+    table.string("type", 20).notNullable().checkIn(["movie", "tv_series"]);
+    table.decimal("average_rating", 4, 1).notNullable().defaultTo(0.0);
     table.integer("rating_count").notNullable().defaultTo(0);
     table.timestamps(true, true);
   });
