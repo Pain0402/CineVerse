@@ -1,4 +1,3 @@
-// src/controllers/reviewController.js
 const ReviewService = require("../services/reviewService");
 
 const ReviewController = {
@@ -16,7 +15,7 @@ const ReviewController = {
     try {
       const { movieId } = req.params;
       const { rating, comment } = req.body;
-      const userId = req.user.user_id; // Lấy từ token đã xác thực
+      const userId = req.user.user_id; 
 
       if (!rating || rating < 0 || rating > 10) {
         return res
@@ -41,7 +40,7 @@ const ReviewController = {
   updateReview: async (req, res, next) => {
     try {
       const { reviewId } = req.params;
-      const userId = req.user.user_id; // Người dùng hiện tại
+      const userId = req.user.user_id; 
       const updatedReview = await ReviewService.updateReview(
         reviewId,
         userId,
@@ -58,8 +57,7 @@ const ReviewController = {
   deleteReview: async (req, res, next) => {
     try {
       const { reviewId } = req.params;
-      const userId = req.user.user_id; // Người dùng hiện tại
-      // Có thể thêm kiểm tra vai trò admin ở đây nếu muốn admin cũng xóa được review
+      const userId = req.user.user_id; 
       await ReviewService.deleteReview(reviewId, userId);
       res.status(204).send();
     } catch (error) {

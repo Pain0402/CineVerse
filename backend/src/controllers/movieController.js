@@ -1,10 +1,10 @@
-// src/controllers/movieController.js
+
 const MovieService = require("../services/movieService");
 
 const MovieController = {
   getAllMovies: async (req, res, next) => {
     try {
-      const filters = req.query; // Lấy bộ lọc từ query parameters
+      const filters = req.query; 
       const movies = await MovieService.getAllMovies(filters);
       res.status(200).json({ data: movies });
     } catch (error) {
@@ -24,7 +24,6 @@ const MovieController = {
 
   createMovie: async (req, res, next) => {
     try {
-      // Kiểm tra quyền (ví dụ: chỉ admin mới được tạo phim)
       if (req.user.role !== "admin") {
         return res
           .status(403)
@@ -65,7 +64,7 @@ const MovieController = {
       }
       const { id } = req.params;
       await MovieService.deleteMovie(id);
-      res.status(204).send(); // 204 No Content for successful deletion
+      res.status(204).send(); 
     } catch (error) {
       next(error);
     }

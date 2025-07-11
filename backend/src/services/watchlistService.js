@@ -1,6 +1,5 @@
-// src/services/watchlistService.js
 const WatchlistModel = require("../models/watchlistModel");
-const MovieModel = require("../models/movieModel"); // Để kiểm tra movie có tồn tại không
+const MovieModel = require("../models/movieModel");
 
 const WatchlistService = {
   getUserWatchlist: async (userId, filters) => {
@@ -13,7 +12,6 @@ const WatchlistService = {
     status,
     currentEpisode = 0
   ) => {
-    // Kiểm tra xem phim có tồn tại không
     const movie = await MovieModel.findById(movieId);
     if (!movie) {
       throw new Error("Movie not found");

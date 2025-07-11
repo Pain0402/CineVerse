@@ -1,4 +1,3 @@
-// src/controllers/authController.js
 const AuthService = require("../services/authService");
 
 const AuthController = {
@@ -24,9 +23,7 @@ const AuthController = {
         token,
       });
     } catch (error) {
-      // console.error(error); // Ghi log lỗi
-      // res.status(400).json({ message: error.message });
-      next(error); // Chuyển lỗi cho middleware xử lý lỗi
+      next(error); 
     }
   },
 

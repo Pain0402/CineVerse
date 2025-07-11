@@ -1,6 +1,5 @@
-// src/services/reviewService.js
 const ReviewModel = require("../models/reviewModel");
-const MovieModel = require("../models/movieModel"); // Cần để cập nhật average_rating
+const MovieModel = require("../models/movieModel"); 
 
 const ReviewService = {
   getReviewsByMovie: async (movieId) => {
@@ -16,11 +15,6 @@ const ReviewService = {
   },
 
   createReview: async (userId, movieId, rating, comment) => {
-    // Kiểm tra xem user đã review phim này chưa (thay vì UNIQUE constraint trên DB)
-    // const existingReview = await ReviewModel.findByUserAndMovie(userId, movieId);
-    // if (existingReview) {
-    //   throw new Error('You have already reviewed this movie.');
-    // }
 
     const newReview = await ReviewModel.create({
       user_id: userId,
@@ -28,7 +22,7 @@ const ReviewService = {
       rating,
       comment,
     });
-    await ReviewService._updateMovieRating(movieId); // Cập nhật điểm trung bình phim
+    await ReviewService._updateMovieRating(movieId); 
     return newReview;
   },
 
@@ -37,13 +31,12 @@ const ReviewService = {
     if (!review) {
       throw new Error("Review not found");
     }
-    // Đảm bảo chỉ chủ sở hữu review mới được cập nhật
     if (review.user_id !== userId) {
       throw new Error("Forbidden: You can only update your own reviews.");
     }
 
     const updatedReview = await ReviewModel.update(reviewId, updateData);
-    await ReviewService._updateMovieRating(review.movie_id); // Cập nhật điểm trung bình phim
+    await ReviewService._updateMovieRating(review.movie_id);
     return updatedReview;
   },
 
@@ -52,18 +45,15 @@ const ReviewService = {
     if (!review) {
       throw new Error("Review not found");
     }
-    // Đảm bảo chỉ chủ sở hữu review hoặc admin mới được xóa
     if (review.user_id !== userId && req.user.role !== "admin") {
-      // req.user.role sẽ được kiểm tra ở controller
       throw new Error("Forbidden: You can only delete your own reviews.");
     }
 
     await ReviewModel.delete(reviewId);
-    await ReviewService._updateMovieRating(review.movie_id); // Cập nhật điểm trung bình phim
+    await ReviewService._updateMovieRating(review.movie_id); 
     return { message: "Review deleted successfully" };
   },
 
-  // Hàm nội bộ để cập nhật average_rating và rating_count của phim
   _updateMovieRating: async (movieId) => {
     const reviews = await ReviewModel.findByMovieId(movieId);
     const totalRatings = reviews.reduce(

@@ -1,4 +1,3 @@
-// src/services/movieService.js
 const MovieModel = require("../models/movieModel");
 
 const MovieService = {
@@ -15,7 +14,6 @@ const MovieService = {
   },
 
   createMovie: async (movieData) => {
-    // Có thể thêm logic kiểm tra dữ liệu đầu vào phức tạp hơn tại đây
     return MovieModel.create(movieData);
   },
 

@@ -1,19 +1,16 @@
-// src/models/movieModel.js
 const db = require("../db");
 
 const TABLE_NAME = "movies";
 
 const MovieModel = {
-  // Lấy tất cả phim
   findAll: async (filters = {}) => {
     let query = db(TABLE_NAME)
       .select("movies.*", db.raw("ARRAY_AGG(genres.name) as genres"))
       .leftJoin("movie_genres", "movies.movie_id", "movie_genres.movie_id")
       .leftJoin("genres", "movie_genres.genre_id", "genres.genre_id")
       .groupBy("movies.movie_id")
-      .orderBy("movies.created_at", "desc"); // Sắp xếp theo thời gian tạo mới nhất
+      .orderBy("movies.created_at", "desc");
 
-    // Áp dụng bộ lọc (ví dụ đơn giản)
     if (filters.type) {
       query = query.where("movies.type", filters.type);
     }
@@ -32,7 +29,6 @@ const MovieModel = {
     return query;
   },
 
-  // Tìm phim theo ID
   findById: async (id) => {
     return db(TABLE_NAME)
       .select("movies.*", db.raw("ARRAY_AGG(genres.name) as genres"))
@@ -43,13 +39,11 @@ const MovieModel = {
       .first();
   },
 
-  // Tạo phim mới
   create: async (movieData) => {
-    const { genres, ...movieDetails } = movieData; // Tách genres ra
+    const { genres, ...movieDetails } = movieData; 
     const [newMovie] = await db(TABLE_NAME).insert(movieDetails).returning("*");
 
     if (genres && genres.length > 0) {
-      // Chèn vào bảng movie_genres
       const movieGenresData = genres.map((genreId) => ({
         movie_id: newMovie.movie_id,
         genre_id: genreId,
@@ -59,30 +53,26 @@ const MovieModel = {
     return newMovie;
   },
 
-  // Cập nhật phim
   update: async (id, updateData) => {
-    const { genres, ...movieDetails } = updateData; // Tách genres ra
+    const { genres, ...movieDetails } = updateData;
     const [updatedMovie] = await db(TABLE_NAME)
       .where({ movie_id: id })
       .update(movieDetails)
       .returning("*");
 
-    // Cập nhật lại các thể loại (xóa cũ, thêm mới)
-    if (genres !== undefined) {
-      // Chỉ cập nhật nếu genres được cung cấp
-      await db("movie_genres").where({ movie_id: id }).del(); // Xóa tất cả genres cũ
+    if (genres !== undefined) {p
+      await db("movie_genres").where({ movie_id: id }).del(); 
       if (genres && genres.length > 0) {
         const movieGenresData = genres.map((genreId) => ({
           movie_id: id,
           genre_id: genreId,
         }));
-        await db("movie_genres").insert(movieGenresData); // Thêm genres mới
+        await db("movie_genres").insert(movieGenresData); 
       }
     }
     return updatedMovie;
   },
 
-  // Xóa phim
   delete: async (id) => {
     return db(TABLE_NAME).where({ movie_id: id }).del();
   },

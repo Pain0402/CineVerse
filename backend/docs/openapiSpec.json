@@ -172,20 +172,18 @@
               "type": "string",
               "enum": [
                 "movie",
-                "tv_series",
-                "anime_tv",
-                "anime_movie"
+                "tv_series"
               ]
             },
             "description": "Filter by movie type"
           },
           {
-            "name": "genre_id",
+            "name": "genre",
             "in": "query",
             "schema": {
-              "type": "integer"
+              "type": "string"
             },
-            "description": "Filter by genre ID"
+            "description": "Filter by genre"
           },
           {
             "name": "search",
@@ -1950,6 +1948,6 @@
     }
   },
   "security": [{
-    "bearerAuth": []
+    "bearerAuth": [123]
   }]
 }

@@ -1,9 +1,8 @@
-// knexfile.js
-require("dotenv").config({ path: "./.env" }); // Đảm bảo dotenv load đúng file .env
+require("dotenv").config({ path: "./.env" });
 
 module.exports = {
   development: {
-    client: "pg", // Client cho PostgreSQL
+    client: "pg", 
     connection: {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
@@ -34,7 +33,6 @@ module.exports = {
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       ssl: {
-        // Nếu deploy lên Heroku hoặc các dịch vụ cloud khác có thể yêu cầu SSL
         rejectUnauthorized: false,
       },
     },
