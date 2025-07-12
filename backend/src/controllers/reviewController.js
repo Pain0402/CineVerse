@@ -6,7 +6,7 @@ const ReviewController = {
     try {
       const { movieId } = req.params;
       const reviews = await ReviewService.getReviewsByMovie(movieId);
-      res.status(200).json({ data: reviews });
+      res.status(200).json({ status: "success", data: reviews });
     } catch (error) {
       next(error);
     }

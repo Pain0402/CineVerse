@@ -38,14 +38,17 @@ const AuthController = {
       }
       const { user, token } = await AuthService.login(email, password);
       res.status(200).json({
-        message: "Logged in successfully",
-        user: {
-          user_id: user.user_id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
+        status: "success",
+        // message: "Logged in successfully",
+        data: {
+          user: {
+            user_id: user.user_id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          },
+          token,
         },
-        token,
       });
     } catch (error) {
       // console.error(error);

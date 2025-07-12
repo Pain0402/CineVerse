@@ -6,7 +6,7 @@ const UserController = {
     try {
       // req.user được gắn bởi authMiddleware
       const user = await UserService.getUserProfile(req.user.user_id);
-      res.status(200).json({ data: user });
+      res.status(200).json({ status: "success", data: user });
     } catch (error) {
       next(error);
     }

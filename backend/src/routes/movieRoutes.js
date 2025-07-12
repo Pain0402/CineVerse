@@ -8,7 +8,8 @@ const router = express.Router();
 
 // Các route công khai (không cần xác thực)
 router.get("/", apiLimiter, MovieController.getAllMovies);
-router.get("/:id", apiLimiter, MovieController.getMovieById);
+// router.get("/:id", apiLimiter, MovieController.getMovieById);
+router.get("/:id", MovieController.getMovieById);
 
 // Các route cần xác thực và quyền admin
 router.post("/", protect, authorize("admin"), MovieController.createMovie);
