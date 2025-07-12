@@ -3,7 +3,7 @@ const MovieService = require("../services/movieService");
 const MovieController = {
   getAllMovies: async (req, res, next) => {
     try {
-      const filters = req.query;
+      const filters = req.query; // Lấy bộ lọc từ query parameters
       const movies = await MovieService.getAllMovies(filters);
       res.status(200).json({
         status: "success",
@@ -92,19 +92,8 @@ const MovieController = {
       }
 
       const { id } = req.params;
-      const result = await MovieService.deleteMovie(id);
-
-      if (!result) {
-        return res.status(404).json({
-          status: "fail",
-          message: "Movie not found",
-        });
-      }
-
-      res.status(204).json({
-        status: "success",
-        data: null,
-      }); // Cũng có thể dùng res.sendStatus(204);
+      await MovieService.deleteMovie(id);
+      res.status(204).send(); // 204 No Content for successful deletion
     } catch (error) {
       next(error);
     }

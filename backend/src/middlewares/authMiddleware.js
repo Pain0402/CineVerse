@@ -1,7 +1,6 @@
-// src/middlewares/authMiddleware.js
 const jwt = require("jsonwebtoken");
 const config = require("../config");
-const UserModel = require("../models/userModel"); // Để lấy thông tin user từ DB nếu cần
+const UserModel = require("../models/userModel"); 
 
 const protect = async (req, res, next) => {
   let token;
@@ -11,13 +10,10 @@ const protect = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
-      // Lấy token từ header "Bearer TOKEN"
       token = req.headers.authorization.split(" ")[1];
 
-      // Giải mã token
       const decoded = jwt.verify(token, config.jwtSecret);
 
-      // Lấy thông tin user từ DB (tùy chọn, nếu bạn muốn đảm bảo user vẫn tồn tại)
       req.user = await UserModel.findById(decoded.user.user_id);
       if (!req.user) {
         return res
@@ -25,7 +21,7 @@ const protect = async (req, res, next) => {
           .json({ message: "Not authorized, user not found" });
       }
 
-      next(); // Chuyển sang middleware/controller tiếp theo
+      next(); 
     } catch (error) {
       console.error("Auth Middleware Error:", error.message);
       res.status(401).json({ message: "Not authorized, token failed" });
@@ -37,7 +33,6 @@ const protect = async (req, res, next) => {
   }
 };
 
-// Middleware kiểm tra quyền (ví dụ: admin)
 const authorize = (roles = []) => {
   if (typeof roles === "string") {
     roles = [roles];
@@ -45,7 +40,6 @@ const authorize = (roles = []) => {
 
   return (req, res, next) => {
     if (!req.user) {
-      // Đảm bảo đã chạy protect middleware trước đó
       return res.status(401).json({ message: "Authentication required" });
     }
     if (roles.length && !roles.includes(req.user.role)) {

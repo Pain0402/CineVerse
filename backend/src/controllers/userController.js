@@ -1,10 +1,8 @@
-// src/controllers/userController.js
 const UserService = require("../services/userService");
 
 const UserController = {
   getMe: async (req, res, next) => {
     try {
-      // req.user được gắn bởi authMiddleware
       const user = await UserService.getUserProfile(req.user.user_id);
       res.status(200).json({ status: "success", data: user });
     } catch (error) {
@@ -14,7 +12,6 @@ const UserController = {
 
   getUserById: async (req, res, next) => {
     try {
-      // Chỉ admin mới được xem profile của người khác
       if (req.user.role !== "admin" && req.user.user_id !== req.params.id) {
         return res.status(403).json({
           message:
@@ -44,7 +41,6 @@ const UserController = {
 
   updateUserById: async (req, res, next) => {
     try {
-      // Chỉ admin mới được cập nhật profile của người khác
       if (req.user.role !== "admin") {
         return res.status(403).json({
           message: "Forbidden: Only admins can update other user profiles",
@@ -66,7 +62,7 @@ const UserController = {
   deleteMe: async (req, res, next) => {
     try {
       await UserService.deleteUser(req.user.user_id);
-      res.status(204).send(); // No content
+      res.status(204).send();
     } catch (error) {
       next(error);
     }
@@ -74,7 +70,6 @@ const UserController = {
 
   deleteUserById: async (req, res, next) => {
     try {
-      // Chỉ admin mới được xóa người dùng khác
       if (req.user.role !== "admin") {
         return res
           .status(403)

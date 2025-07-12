@@ -1,11 +1,10 @@
-// src/controllers/watchlistController.js
 const WatchlistService = require("../services/watchlistService");
 
 const WatchlistController = {
   getUserWatchlist: async (req, res, next) => {
     try {
-      const userId = req.user.user_id; // Lấy từ token đã xác thực
-      const filters = req.query; // Lấy các bộ lọc (status, movie_type)
+      const userId = req.user.user_id; 
+      const filters = req.query; 
       const watchlist = await WatchlistService.getUserWatchlist(
         userId,
         filters
@@ -56,7 +55,7 @@ const WatchlistController = {
   deleteWatchlistItem: async (req, res, next) => {
     try {
       const userId = req.user.user_id;
-      const { movieId } = req.params; // Lấy movieId từ params để xóa
+      const { movieId } = req.params; 
       await WatchlistService.deleteWatchlistItem(userId, movieId);
       res.status(204).send();
     } catch (error) {
