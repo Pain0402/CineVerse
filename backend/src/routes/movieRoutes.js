@@ -6,7 +6,8 @@ const { apiLimiter } = require("../middlewares/rateLimitMiddleware");
 const router = express.Router();
 
 router.get("/", apiLimiter, MovieController.getAllMovies);
-router.get("/:id", apiLimiter, MovieController.getMovieById);
+// router.get("/:id", apiLimiter, MovieController.getMovieById);
+router.get("/:id", MovieController.getMovieById);
 
 router.post("/", protect, authorize("admin"), MovieController.createMovie);
 router.put("/:id", protect, authorize("admin"), MovieController.updateMovie);

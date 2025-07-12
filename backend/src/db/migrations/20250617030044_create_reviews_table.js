@@ -1,4 +1,3 @@
-// src/db/migrations/[timestamp]_create_reviews_table.js
 exports.up = function (knex) {
   return knex.schema.createTable("reviews", function (table) {
     table.uuid("review_id").primary().defaultTo(knex.raw("gen_random_uuid()"));
@@ -17,7 +16,7 @@ exports.up = function (knex) {
       .inTable("movies")
       .onDelete("CASCADE");
 
-    table.decimal("rating", 2, 1).notNullable().checkBetween([0.0, 10.0]); // Điểm từ 0.0 đến 10.0
+    table.decimal("rating", 4, 1).notNullable().checkBetween([0.0, 10.0]);
     table.text("comment");
     table.timestamps(true, true);
 

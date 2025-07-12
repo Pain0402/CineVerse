@@ -1,4 +1,3 @@
-// src/db/migrations/[timestamp]_create_movies_table.js
 exports.up = function (knex) {
   return knex.schema.createTable("movies", function (table) {
     // Unique identifier for the movie/series. Using UUID for robust unique IDs.
@@ -36,6 +35,7 @@ exports.up = function (knex) {
       .string("status", 20)
       .notNullable()
       .defaultTo("released")
+<<<<<<< HEAD
       .checkIn(["released", "in_production", "upcoming"]);
 
     // The type of content: 'movie' for films, 'series' for TV series/anime TV.
@@ -53,6 +53,11 @@ exports.up = function (knex) {
     table.decimal("average_rating", 3, 1).notNullable().defaultTo(0.0);
 
     // Number of ratings received, used to calculate average_rating.
+=======
+      .checkIn(["released", "airing", "upcoming", "cancelled"]);
+    table.string("type", 20).notNullable().checkIn(["movie", "tv_series"]);
+    table.decimal("average_rating", 4, 1).notNullable().defaultTo(0.0);
+>>>>>>> d04ea87dc0f5bbcac0414f58045c5399e99cb995
     table.integer("rating_count").notNullable().defaultTo(0);
 
     // Automatically adds 'created_at' and 'updated_at' columns.
