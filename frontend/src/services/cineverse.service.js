@@ -26,8 +26,11 @@ apiClient.interceptors.request.use(
 // Interceptor để xử lý lỗi response
 apiClient.interceptors.response.use(
   (response) => {
+    console.log('Response:', response.data)
+
     // Axios tự động parse JSON, bạn có thể kiểm tra logic 'success' của API nếu cần
     if (response.data && response.data.status === 'success') {
+      console.log('Phản hồi:', response.data)
       return response.data.data // Trả về phần 'data' của response nếu thành công
     }
     // Nếu API có cấu trúc response riêng cho lỗi nhưng vẫn trả về 2xx, xử lý ở đây
@@ -67,6 +70,8 @@ const cineverseService = {
   async login(credentials) {
     // Endpoint: POST /auth/login
     const response = await apiClient.post('/auth/login', credentials)
+    console.log('Login response:', response)
+
     const authStore = useAuthStore()
     authStore.setAuth(response.user, response.token) // Lưu thông tin auth vào Pinia store
     return response
