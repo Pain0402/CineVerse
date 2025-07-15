@@ -13,21 +13,59 @@
             aria-label="Search">
         </form>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-          <li class="nav-item"><a class="nav-link" href="#">Phim Điện Ảnh</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Phim Truyền Hình</a></li>
           <li class="nav-item">
-            <RouterLink :to="{ name: 'user.watchlist' }" class="nav-link" href="#">Watchlists</RouterLink>
+            <div class="btn-group">
+              <button type="button" class="btn action nav-link">Movies</button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Anime</a></li>
+                <li><a class="dropdown-item" href="#">TV-Series</a></li>
+                <li><a class="dropdown-item" href="#">Trailers</a></li>
+                <li><a class="dropdown-item" href="#">Top 10</a></li>
+                <li><a class="dropdown-item" href="#">Genres</a></li>
+                <li><a class="dropdown-item" href="#">Latest</a></li>
+                <li><a class="dropdown-item" href="#">Upcoming</a></li>
+              </ul>
+            </div>
           </li>
-          <li class="nav-item"><a class="nav-link" href="#">Cộng đồng</a></li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                class="bi bi-person-circle" viewBox="0 0 16 16">
-                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                <path fill-rule="evenodd"
-                  d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
-              </svg>
-            </a>
+            <router-link :to="{ name: 'user.watchlist' }" class="nav-link" href="#">Watchlists</router-link>
+          </li>
+          <li class="nav-item">
+            <div class="btn-group">
+              <button type="button" class="btn action nav-link">Community</button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Clubs</a></li>
+                <li><a class="dropdown-item" href="#">Users</a></li>
+                <li><a class="dropdown-item" href="#">Blogs</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="btn-group">
+              <button type="button" class="btn action nav-link">Help</button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">About</a></li>
+                <li><a class="dropdown-item" href="#">Support</a></li>
+                <li><a class="dropdown-item" href="#">Advertising</a></li>
+                <li><a class="dropdown-item" href="#">FAQ</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="nav-item">
+            <div class="btn-group profile">
+              <button type="button" class="btn action nav-link "><i class="fa-solid fa-circle-user fs-4 text"></i>
+              </button>
+              <ul v-if="isAuthenticated" class="dropdown-menu ">
+                <li><router-link :to="{ name: 'user.watchlist' }" class="dropdown-item">Watchlist</router-link></li>
+                <li><a class="dropdown-item" href="#">Profile</a></li>
+                <li><a class="dropdown-item" href="#">Setting</a></li>
+                <li><a class="dropdown-item" @click="handleLogout">Logout</a></li>
+              </ul>
+              <ul v-else class="dropdown-menu">
+                <li><router-link to="/auth" class="dropdown-item">Login </router-link></li>
+                <li><router-link to="/auth" class="dropdown-item">Register</router-link></li>
+              </ul>
+            </div>
           </li>
         </ul>
       </div>
@@ -36,7 +74,21 @@
 </template>
 
 <script setup>
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { computed } from 'vue';
+
+
+const authStore = useAuthStore();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+const router = useRouter();
+
+function handleLogout() {
+  if (confirm("Bạn có chắn muốn đăng xuất?")) {
+    authStore.logout()
+    router.push('/')
+  }
+}
 </script>
 
 <style>
@@ -59,7 +111,7 @@ import { RouterLink } from 'vue-router';
 }
 
 /* Animation */
-.rotate-in-center {
+.rotate-in-center:hover {
   animation: rotate-in-center 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
@@ -91,7 +143,38 @@ import { RouterLink } from 'vue-router';
 .nav-link:focus {
   color: var(--starlight-yellow);
   font-weight: 700;
+  background-color: var(--surface-glass);
 }
+
+.btn-group .dropdown-menu {
+  background-color: var(--deep-space-black);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-group:hover .dropdown-menu {
+  display: block;
+  margin-top: 30px;
+}
+
+.btn-group .dropdown-menu .dropdown-item {
+  color: var(--nebula-white);
+  padding: 10px 20px;
+  text-decoration: none;
+}
+
+.btn-group .dropdown-menu .dropdown-item:hover {
+  background-color: var(--galaxy-purple);
+  font-weight: 700;
+  color: var(--nebula-white);
+}
+
+/* .profile .dropdown-menu {
+  right: -80px;
+  width: max-content;
+  text-align: center;
+
+} */
 
 .search-bar {
   background-color: rgba(0, 0, 0, 0.2);
@@ -105,8 +188,8 @@ import { RouterLink } from 'vue-router';
 
 .search-bar:focus {
   background-color: rgba(0, 0, 0, 0.4);
-  border-color: var(--starlight-yellow);
-  box-shadow: 0 0 0 0.25rem rgba(255, 217, 77, 0.25);
+  border-color: var(--galaxy-purple);
+  box-shadow: 0 0 0 0.25rem rgba(145, 49, 255, 0.25);
   color: var(--nebula-white);
 }
 </style>

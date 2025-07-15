@@ -113,8 +113,8 @@ const userProfile = ref({
   },
 });
 
-const activeTab = ref('watching'); // Default active tab
-const loading = ref(true); // Loading state
+const activeTab = ref('watching');
+const loading = ref(true);
 
 const tabs = [
   { id: 'watching', name: 'Đang xem', apiStatus: 'watching' },
@@ -208,26 +208,13 @@ watch(activeTab, (newTab) => {
 </script>
 
 <style scoped>
-/* Định nghĩa các biến CSS từ bảng màu */
-:root {
-  --galaxy-purple: #5A42D4;
-  --cosmic-blue: #2E73E8;
-  --starlight-yellow: #FFD94D;
-  --deep-space-black: #0D0C1D;
-  --nebula-white: #F5F5FA;
-  --nebula-white-light: rgba(245, 245, 250, 0.8);
-  /* Nhạt hơn một chút cho text phụ */
-  --surface-glass: rgba(245, 245, 250, 0.05);
-  --border-glass: rgba(245, 245, 250, 0.2);
-}
-
 .watchlists-view-container {
   background-color: var(--deep-space-black);
   background-image: linear-gradient(175deg,
       rgba(46, 115, 232, 0.1) -10%,
       rgba(90, 66, 212, 0.15) 40%,
       var(--deep-space-black) 80%);
-  font-family: 'Be Vietnam Pro', sans-serif;
+  /* font-family: 'Be Vietnam Pro', sans-serif; */
   color: var(--nebula-white);
   min-height: 100vh;
   width: 100%;
@@ -249,6 +236,7 @@ watch(activeTab, (newTab) => {
   overflow: hidden;
   /* Thêm hiệu ứng glow nhẹ cho viền */
   box-shadow: 0 0 20px rgba(46, 115, 232, 0.3), 0 0 30px rgba(90, 66, 212, 0.3);
+  top: 40px;
 }
 
 .profile-avatar {

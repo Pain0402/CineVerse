@@ -1,37 +1,5 @@
 <template>
   <div class="cineverse-theme movie-detail-page">
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-nav">
-      <div class="container">
-        <a class="navbar-brand fw-bold" href="/">
-          <img class="navbar-brand-logo rotate-in-center" src="@/assets/imgs/universe.png" alt="">CineVerse</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <form class="d-flex flex-grow-1 mx-lg-5 my-2 my-lg-0" role="search">
-            <input class="form-control me-2 search-bar" type="search" placeholder="Tìm kiếm phim, series, anime..."
-              aria-label="Search">
-          </form>
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-            <li class="nav-item"><a class="nav-link" href="#">Phim Điện Ảnh</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Phim Truyền Hình</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Anime</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Cộng đồng</a></li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                  class="bi bi-person-circle" viewBox="0 0 16 16">
-                  <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                  <path fill-rule="evenodd"
-                    d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
-                </svg>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
     <!-- Trạng thái đang tải -->
     <div v-if="isLoading" class="loading-container d-flex justify-content-center align-items-center">
       <div class="spinner-border text-light" role="status">
@@ -52,35 +20,84 @@
     <!-- Nội dung chính khi đã có dữ liệu -->
     <div v-else-if="movie">
       <!-- Banner Phim -->
-      <header class="movie-banner" :style="{ backgroundImage: `url(${movie.backdropUrl})` }">
+      <header class="movie-banner" :style="{ backgroundImage: `url(${movie.backdrop_url || movie.poster_url})` }">
         <div class="banner-overlay">
           <div class="container">
             <div class="row align-items-center">
               <div class="col-md-4 text-center text-md-start">
-                <img :src="movie.posterUrl" :alt="`Poster of ${movie.title}`"
+                <img :src="movie.poster_url" :alt="`Poster of ${movie.title}`"
                   class="img-fluid rounded-3 shadow-lg movie-poster" @error="handleImageError">
               </div>
               <div class="col-md-8 mt-4 mt-md-0">
                 <h1 class="display-4 fw-bold">{{ movie.title }}</h1>
-                <p class="text-muted fst-italic">{{ movie.tagline || movie.original_title }}</p>
+                <p class="text-muted fst-italic">{{ movie.original_title }}</p>
                 <div class="d-flex align-items-center gap-3 my-3">
-                  <div v-if="movie.rating > 0" class="rating-badge">
+                  <div v-if="movie.average_rating > 0" class="rating-badge">
                     <i class="fa-solid fa-star"></i>
-                    {{ movie.rating }}
+                    {{ movie.average_rating }}
                   </div>
-                  <span class="meta-info">{{ movie.year }}</span>
-                  <span class="meta-info">{{ movie.duration }}</span>
+                  <span class="meta-info">{{ movie.release_year }}</span>
+                  <span class="meta-info" v-if="movie.runtime_minutes">{{ formatDuration(movie.runtime_minutes)
+                  }}</span>
+                  <span class="meta-info" v-if="movie.episode_count && movie.type !== 'movie'">{{ movie.episode_count }}
+                    tập</span>
                 </div>
                 <div class="genres my-3">
                   <span v-for="genre in movie.genres" :key="genre" class="badge genre-badge me-2">{{ genre }}</span>
                 </div>
                 <p class="lead synopsis">{{ movie.synopsis }}</p>
+
+                <!-- Action Buttons / Watchlist Edit Form -->
                 <div class="action-buttons mt-4">
-                  <button class="btn btn-accent btn-lg me-3">
-                    <i class="fa-solid fa-plus"></i>
-                    Thêm vào danh sách
-                  </button>
-                  <button class="btn btn-outline-light btn-lg">
+                  <div v-if="!authStore.isAuthenticated">
+                    <button class="btn btn-accent btn-lg me-3" disabled>
+                      <i class="fa-solid fa-plus"></i> Đăng nhập để thêm vào danh sách
+                    </button>
+                  </div>
+                  <div v-else>
+                    <!-- If movie is NOT in watchlist -->
+                    <button v-if="!currentWatchlistItem" class="btn btn-accent btn-lg me-3"
+                      @click="handleAddToWatchlist" :disabled="isUpdatingWatchlist">
+                      <i class="fa-solid fa-plus"></i>
+                      {{ isUpdatingWatchlist ? 'Đang thêm...' : 'Thêm vào danh sách' }}
+                    </button>
+
+                    <!-- If movie IS in watchlist -->
+                    <div v-else class="watchlist-edit-form p-3 rounded-3 glass-surface">
+                      <h5 class="mb-3">Chỉnh sửa danh sách xem</h5>
+                      <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                          <label for="watchlistStatus" class="form-label small text-muted">Trạng thái:</label>
+                          <select class="form-select custom-select" id="watchlistStatus" v-model="watchlistForm.status">
+                            <option value="watching">Đang xem</option>
+                            <option value="completed">Đã xem</option>
+                            <option value="plan_to_watch">Muốn xem</option>
+                            <option value="dropped">Bỏ dở</option>
+                          </select>
+                        </div>
+                        <div class="col-md-3" v-if="movie.type === 'tv_series' || movie.type === 'anime_tv'">
+                          <label for="currentEpisode" class="form-label small text-muted">Tập hiện tại:</label>
+                          <input type="number" class="form-control custom-input" id="currentEpisode"
+                            v-model.number="watchlistForm.currentEpisode" min="0" :max="movie.episode_count || 9999" />
+                        </div>
+                        <div class="col-md-3">
+                          <button class="btn gradient-button w-100" @click="handleUpdateWatchlist"
+                            :disabled="isUpdatingWatchlist">
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            {{ isUpdatingWatchlist ? 'Đang cập nhật...' : 'Cập nhật' }}
+                          </button>
+                        </div>
+                      </div>
+                      <div class="mt-3 text-end">
+                        <button class="btn btn-sm btn-outline-danger" @click="handleRemoveFromWatchlist"
+                          :disabled="isUpdatingWatchlist">
+                          <i class="bi bi-trash me-1"></i>Xóa khỏi danh sách
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button class="btn btn-outline-light btn-lg ms-md-3 mt-3 mt-md-0">
                     <i class="fa-solid fa-pen-to-square"></i>
                     Viết đánh giá
                   </button>
@@ -97,10 +114,10 @@
           <!-- Cột chính (bên trái) -->
           <div class="col-lg-8">
             <!-- Trailer & Media -->
-            <section v-if="movie.trailerUrl" class="mb-5">
+            <section v-if="movie.trailer_url" class="mb-5">
               <h3 class="section-title">Trailer</h3>
               <div class="ratio ratio-16x9 rounded-3 overflow-hidden">
-                <iframe :src="movie.trailerUrl" title="YouTube video player" frameborder="0"
+                <iframe :src="getEmbedUrl(movie.trailer_url)" title="YouTube video player" frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowfullscreen></iframe>
               </div>
@@ -112,13 +129,13 @@
               <div class="review-box glass-surface p-4 rounded-3">
                 <div v-if="reviews.length === 0" class="text-center text-muted p-3">Chưa có đánh giá nào. Hãy là người
                   đầu tiên!</div>
-                <div v-for="review in reviews" :key="review.id" class="review-item mb-4">
+                <div v-for="review in reviews" :key="review.review_id" class="review-item mb-4">
                   <div class="d-flex align-items-start">
-                    <img :src="review.author.avatarUrl" class="rounded-circle me-3" width="50" height="50"
-                      @error="handleImageError">
+                    <img :src="review.avatar_url || 'https://placehold.co/100x100/2E73E8/FFFFFF?text=U'"
+                      class="rounded-circle me-3" width="50" height="50" @error="handleImageError">
                     <div>
-                      <h6 class="mb-0">{{ review.author.name }}</h6>
-                      <p class="text-muted small">{{ formatDate(review.date) }}</p>
+                      <h6 class="mb-0">{{ review.username }}</h6>
+                      <p class="text-muted small">{{ formatDate(review.created_at) }}</p>
                     </div>
                   </div>
                   <p class="mt-2">{{ review.comment }}</p>
@@ -132,10 +149,12 @@
             <div class="glass-sidebar p-4 rounded-3 sticky-top">
               <h4 class="sidebar-title">Thông tin</h4>
               <ul class="list-unstyled info-list">
-                <li><strong>Trạng thái:</strong> <span>{{ movie.details.status }}</span></li>
-                <li><strong>Ngôn ngữ gốc:</strong> <span>{{ movie.details.originalLanguage }}</span></li>
-                <li><strong>Kinh phí:</strong> <span>{{ movie.details.budget }}</span></li>
-                <li><strong>Doanh thu:</strong> <span>{{ movie.details.revenue }}</span></li>
+                <li><strong>Trạng thái:</strong> <span>{{ movie.status }}</span></li>
+                <li><strong>Ngôn ngữ gốc:</strong> <span>{{ movie.original_language || 'N/A' }}</span></li>
+                <li><strong>Kinh phí:</strong> <span>{{ movie.budget ? `$${new
+                  Intl.NumberFormat().format(movie.budget)}` : 'N/A' }}</span></li>
+                <li><strong>Doanh thu:</strong> <span>{{ movie.revenue ? `$${new
+                  Intl.NumberFormat().format(movie.revenue)}` : 'N/A' }}</span></li>
               </ul>
             </div>
           </aside>
@@ -148,13 +167,24 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
-import cineverseService from '@/services/cineverse.service'; // <-- Đảm bảo đường dẫn này đúng
+import cineverseService from '@/services/cineverse.service';
+import { useAuthStore } from '@/stores/auth'; // Import auth store
 
 const route = useRoute();
+const authStore = useAuthStore(); // Use auth store
+
 const movie = ref(null);
 const reviews = ref([]);
 const isLoading = ref(true);
 const error = ref(null);
+
+// Watchlist specific states
+const currentWatchlistItem = ref(null); // Stores the watchlist item if it exists
+const isUpdatingWatchlist = ref(false); // To disable buttons during API calls
+const watchlistForm = ref({
+  status: 'plan_to_watch', // Default status when adding
+  currentEpisode: 0,
+});
 
 // Hàm tiện ích để chuyển đổi phút thành định dạng giờ và phút
 const formatDuration = (minutes) => {
@@ -179,12 +209,13 @@ const getEmbedUrl = (url) => {
   if (!url) return '';
   try {
     const urlObj = new URL(url);
-    if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
-      const videoId = urlObj.searchParams.get('v');
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-    if (urlObj.hostname === 'youtu.be') {
-      const videoId = urlObj.pathname.slice(1);
+    if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+      let videoId = '';
+      if (urlObj.hostname.includes('youtube.com')) {
+        videoId = urlObj.searchParams.get('v');
+      } else if (urlObj.hostname.includes('youtu.be')) {
+        videoId = urlObj.pathname.slice(1);
+      }
       return `https://www.youtube.com/embed/${videoId}`;
     }
   } catch (e) {
@@ -193,56 +224,134 @@ const getEmbedUrl = (url) => {
   return url; // Trả về url gốc nếu không xử lý được
 };
 
-
 // Hàm xử lý lỗi hình ảnh
 const handleImageError = (event) => {
   event.target.src = 'https://placehold.co/300x450/0D0C1D/F5F5FA?text=Not+Found';
 };
 
-// Hàm chính để tải dữ liệu
+// --- Watchlist Functions ---
+const fetchWatchlistItemStatus = async (movieId) => {
+  if (!authStore.isAuthenticated) {
+    currentWatchlistItem.value = null; // Reset if not authenticated
+    return;
+  }
+  try {
+    const item = await cineverseService.getWatchlistItem(movieId);
+    currentWatchlistItem.value = item;
+    // Initialize form with existing data
+    watchlistForm.value.status = item.status;
+    watchlistForm.value.currentEpisode = item.current_episode || 0;
+  } catch (err) {
+    // If 404 (Not Found), it means the movie is not in watchlist
+    if (err.message && err.message.includes('Movie not in watchlist')) { // Check for 404 in error message
+      currentWatchlistItem.value = null;
+      console.log("Movie not found in watchlist, ready to add new item.");
+    } else {
+      console.error("Error fetching watchlist item status:", err);
+      // Handle other errors (e.g., network issues)
+    }
+  }
+};
+
+const handleAddToWatchlist = async () => {
+  if (!movie.value || isUpdatingWatchlist.value) return;
+
+  isUpdatingWatchlist.value = true;
+  try {
+    const newItem = {
+      movieId: movie.value.movie_id,
+      status: 'plan_to_watch', // Default to "plan_to_watch" when first added
+      currentEpisode: 0,
+    };
+    await cineverseService.addOrUpdateWatchlistItem(newItem);
+    await fetchWatchlistItemStatus(movie.value.movie_id); // Re-fetch to update UI
+    alert('Phim đã được thêm vào danh sách xem của bạn!');
+  } catch (err) {
+    console.error("Error adding to watchlist:", err);
+    alert('Không thể thêm phim vào danh sách. Vui lòng thử lại.');
+  } finally {
+    isUpdatingWatchlist.value = false;
+  }
+};
+
+const handleUpdateWatchlist = async () => {
+  if (!movie.value || !currentWatchlistItem.value || isUpdatingWatchlist.value) return;
+
+  isUpdatingWatchlist.value = true;
+  try {
+    const updatedItem = {
+      movieId: movie.value.movie_id,
+      status: watchlistForm.value.status,
+      currentEpisode: watchlistForm.value.currentEpisode,
+    };
+    await cineverseService.addOrUpdateWatchlistItem(updatedItem);
+    await fetchWatchlistItemStatus(movie.value.movie_id); // Re-fetch to update UI
+    alert('Danh sách xem đã được cập nhật!');
+  } catch (err) {
+    console.error("Error updating watchlist:", err);
+    alert('Không thể cập nhật danh sách. Vui lòng thử lại.');
+  } finally {
+    isUpdatingWatchlist.value = false;
+  }
+};
+
+const handleRemoveFromWatchlist = async () => {
+  if (!movie.value || !currentWatchlistItem.value || isUpdatingWatchlist.value) return;
+
+  if (!confirm('Bạn có chắc chắn muốn xóa phim này khỏi danh sách xem?')) {
+    return;
+  }
+
+  isUpdatingWatchlist.value = true;
+  try {
+    await cineverseService.deleteWatchlistItem(movie.value.movie_id);
+    currentWatchlistItem.value = null; // Clear item from local state
+    alert('Phim đã được xóa khỏi danh sách xem.');
+  } catch (err) {
+    console.error("Error removing from watchlist:", err);
+    alert('Không thể xóa phim khỏi danh sách. Vui lòng thử lại.');
+  } finally {
+    isUpdatingWatchlist.value = false;
+  }
+};
+
+
+// Hàm chính để tải dữ liệu phim và reviews
 const fetchMovieData = async (id) => {
   isLoading.value = true;
   error.value = null;
   movie.value = null; // Reset dữ liệu cũ
+  reviews.value = []; // Reset reviews cũ
+  currentWatchlistItem.value = null; // Reset watchlist item cũ
 
   try {
     // Gọi API song song để tăng tốc độ
-    const [movieData, reviewsData] = await Promise.all([
+    const [movieResponse, reviewsResponse] = await Promise.all([
       cineverseService.getMovieById(id),
       cineverseService.getReviewsForMovie(id)
     ]);
 
     // Ánh xạ dữ liệu phim từ API
-    movie.value = {
-      id: movieData.movie_id,
-      title: movieData.title,
-      original_title: movieData.original_title,
-      posterUrl: movieData.poster_url,
-      backdropUrl: movieData.backdrop_url || movieData.poster_url, // Dùng poster nếu không có backdrop
-      rating: movieData.average_rating,
-      year: movieData.release_year,
-      duration: formatDuration(movieData.runtime_minutes),
-      genres: movieData.genres || [],
-      synopsis: movieData.synopsis,
-      trailerUrl: getEmbedUrl(movieData.trailer_url),
-      details: {
-        status: movieData.status,
-        originalLanguage: 'English', // API hiện không có trường này
-        budget: movieData.budget ? `$${new Intl.NumberFormat().format(movieData.budget)}` : 'N/A', // API hiện không có
-        revenue: movieData.revenue ? `$${new Intl.NumberFormat().format(movieData.revenue)}` : 'N/A', // API hiện không có
-      }
-    };
+    movie.value = movieResponse; // Directly assign as the structure matches OpenAPI
+    // Note: 'backdrop_url' is not in OpenAPI Movie schema, assuming it might be added or use poster_url
+    if (!movie.value.backdrop_url) {
+      movie.value.backdrop_url = movie.value.poster_url;
+    }
 
     // Ánh xạ dữ liệu bình luận từ API
-    reviews.value = reviewsData.map(review => ({
-      id: review.review_id,
-      author: {
-        name: review.username,
-        avatarUrl: review.avatar_url || 'https://placehold.co/100x100/2E73E8/FFFFFF?text=U'
-      },
-      date: review.created_at,
-      comment: review.comment
+    reviews.value = reviewsResponse.map(review => ({
+      review_id: review.review_id,
+      username: review.username, // From join
+      avatar_url: review.avatar_url || 'https://placehold.co/100x100/2E73E8/FFFFFF?text=U', // From join
+      created_at: review.created_at,
+      comment: review.comment,
+      rating: review.rating,
     }));
+
+    // Fetch watchlist status after movie data is loaded and if user is authenticated
+    if (authStore.isAuthenticated) {
+      await fetchWatchlistItemStatus(id);
+    }
 
   } catch (err) {
     console.error("Lỗi khi tải chi tiết phim:", err);
@@ -263,6 +372,18 @@ watch(
   { immediate: true } // 'immediate: true' sẽ chạy watch ngay lần đầu tiên component được tạo
 );
 
+
+
+// Watch for changes in authentication status (e.g., user logs in/out)
+// to re-fetch watchlist item status
+watch(
+  () => authStore.isAuthenticated,
+  () => {
+    if (movie.value && movie.value.movie_id) {
+      fetchWatchlistItemStatus(movie.value.movie_id);
+    }
+  }
+);
 </script>
 
 <style scoped>
@@ -272,14 +393,6 @@ watch(
 
 /* Theme và biến màu */
 .cineverse-theme {
-  --galaxy-purple: #5A42D4;
-  --cosmic-blue: #2E73E8;
-  --starlight-yellow: #FFD94D;
-  --deep-space-black: #0D0C1D;
-  --nebula-white: #F5F5FA;
-  --surface-glass: rgba(245, 245, 250, 0.05);
-  --border-glass: rgba(245, 245, 250, 0.2);
-
   background-color: var(--deep-space-black);
   color: var(--nebula-white);
   font-family: 'Be Vietnam Pro', sans-serif;
@@ -397,81 +510,69 @@ watch(
   border: 1px solid var(--border-glass);
 }
 
+.review-box {
+  background: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 .review-item:not(:last-child) {
   border-bottom: 1px solid var(--border-glass);
   padding-bottom: 1rem;
 }
 
-.glass-nav {
+
+/* Watchlist Edit Form Styles */
+.watchlist-edit-form {
   background: var(--surface-glass);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-bottom: 1px solid var(--border-glass);
+  border: 1px solid var(--border-glass);
+  padding: 1.5rem;
 }
 
-.navbar-brand .navbar-brand-logo {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
-}
-
-.navbar-brand:hover {
+.watchlist-edit-form h5 {
   color: var(--starlight-yellow);
+  font-weight: bold;
 }
 
-.navbar-brand .navbar-brand-logo:hover {
-  transform: rotate(10deg) scale(1.05);
-  /* Xoay 10 độ và phóng to 5% */
-}
-
-/* Animation */
-.rotate-in-center {
-  animation: rotate-in-center 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-}
-
-/* ----------------------------------------------
- * Generated by Animista on 2025-7-12 10:44:59
- * Licensed under FreeBSD License.
- * See http://animista.net/license for more info. 
- * w: http://animista.net, t: @cssanimista
- * ---------------------------------------------- */
-
-/**
- * ----------------------------------------
- * animation rotate-in-center
- * ----------------------------------------
- */
-@keyframes rotate-in-center {
-  0% {
-    transform: rotate(-360deg);
-    opacity: 0;
-  }
-
-  100% {
-    transform: rotate(0);
-    opacity: 1;
-  }
-}
-
-.nav-link:hover,
-.nav-link:focus {
-  color: var(--starlight-yellow);
-}
-
-.search-bar {
-  background-color: rgba(0, 0, 0, 0.2);
+.custom-select,
+.custom-input {
+  background-color: rgba(245, 245, 250, 0.08);
   border: 1px solid var(--border-glass);
   color: var(--nebula-white);
+  padding: 0.75rem 1.25rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.search-bar::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.search-bar:focus {
-  background-color: rgba(0, 0, 0, 0.4);
-  border-color: var(--starlight-yellow);
-  box-shadow: 0 0 0 0.25rem rgba(255, 217, 77, 0.25);
+.custom-select:focus,
+.custom-input:focus {
+  background-color: rgba(245, 245, 250, 0.15);
+  border-color: var(--cosmic-blue);
+  box-shadow: 0 0 0 0.25rem rgba(46, 115, 232, 0.25);
   color: var(--nebula-white);
+}
+
+.custom-select option {
+  background-color: var(--deep-space-black);
+  /* Màu nền cho option */
+  color: var(--nebula-white);
+  /* Màu chữ cho option */
+}
+
+.gradient-button {
+  background: linear-gradient(90deg, var(--galaxy-purple), var(--cosmic-blue));
+  border: none;
+  color: var(--nebula-white);
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.gradient-button:hover {
+  background: linear-gradient(90deg, var(--cosmic-blue), var(--galaxy-purple));
+  box-shadow: 0 6px 20px rgba(46, 115, 232, 0.4);
+  transform: translateY(-2px);
 }
 </style>

@@ -19,11 +19,11 @@ const routes = [
     name: 'auth',
     component: AuthView,
   },
-  // {
-  //   path: '/admin/movies/add',
-  //   name: 'movie.add',
-  //   component: () => import('@/views/AddMovie.vue'), // Trang thêm phim (Admin)
-  // },
+  {
+    path: '/admin',
+    name: 'admin.dashboard',
+    component: () => import('@/views/MovieManagementView.vue'), // Trang thêm phim (Admin)
+  },
   // {
   //   path: '/profile',
   //   name: 'user.profile',

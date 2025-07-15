@@ -3,6 +3,9 @@ exports.up = function (knex) {
     // Unique identifier for the movie/series. Using UUID for robust unique IDs.
     table.uuid("movie_id").primary().defaultTo(knex.raw("gen_random_uuid()"));
 
+    // TMDB ID for the movie/series, used for external references.
+    table.integer("tmdb_id").unique().index(); // `unique` để đảm bảo không có 2 phim trỏ đến cùng 1 tmdb_id. `index` để tìm kiếm nhanh.
+
     // Main title of the movie/series. Cannot be null.
     table.string("title", 255).notNullable();
 
@@ -35,29 +38,9 @@ exports.up = function (knex) {
       .string("status", 20)
       .notNullable()
       .defaultTo("released")
-<<<<<<< HEAD
-      .checkIn(["released", "in_production", "upcoming"]);
-
-    // The type of content: 'movie' for films, 'series' for TV series/anime TV.
-    // Aligned with OpenAPI schema: ["movie", "series"]
-    table
-      .string("type", 20)
-      .notNullable()
-      .checkIn(["movie", "series"]);
-
-    // The company that produced the movie/series. Added this column as it was in the seed file and OpenAPI.
-    table.string("production_company", 255).nullable();
-
-    // Average rating based on user reviews (e.g., 1-10 scale).
-    // Decimal(precision, scale) for precise rating.
-    table.decimal("average_rating", 3, 1).notNullable().defaultTo(0.0);
-
-    // Number of ratings received, used to calculate average_rating.
-=======
       .checkIn(["released", "airing", "upcoming", "cancelled"]);
     table.string("type", 20).notNullable().checkIn(["movie", "tv_series"]);
     table.decimal("average_rating", 4, 1).notNullable().defaultTo(0.0);
->>>>>>> d04ea87dc0f5bbcac0414f58045c5399e99cb995
     table.integer("rating_count").notNullable().defaultTo(0);
 
     // Automatically adds 'created_at' and 'updated_at' columns.

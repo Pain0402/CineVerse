@@ -28,9 +28,9 @@ const WatchlistService = {
 
   getWatchlistItem: async (userId, movieId) => {
     const item = await WatchlistModel.findByUserAndMovie(userId, movieId);
-    if (!item) {
-      throw new Error("Watchlist item not found");
-    }
+    // if (!item) {
+    //   throw new Error("Watchlist item not found");
+    // }
     return item;
   },
 

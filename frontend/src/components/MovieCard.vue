@@ -2,7 +2,14 @@
   <RouterLink :to="{ name: 'movie.detail', params: { id: movie.id } }" class="movie-card text-decoration-none">
     <img :src="movie.posterUrl" class="card-img-top" :alt="movie.title" @error="handleImageError">
     <div class="card-body">
-      <h5 class="card-title">{{ movie.title }}</h5>
+      <h5 class="card-title">{{ movie.title }} </h5>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="badge bg-warning">
+          <i class="fa-solid fa-star"></i>
+          {{ movie.averageRating || 'N/A' }}
+        </span>
+        <button class="badge bg-secondary">add</button>
+      </div>
     </div>
   </RouterLink>
 </template>
@@ -45,7 +52,7 @@ const handleImageError = (event) => {
 .movie-card:hover {
   transform: translateY(-10px) scale(1.03);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 217, 77, 0.5);
+  border-color: rgba(145, 49, 255, 0.25);
 }
 
 .movie-card .card-img-top {
