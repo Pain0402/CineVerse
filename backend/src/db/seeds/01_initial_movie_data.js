@@ -1,9 +1,7 @@
-// file: seeds/01_initial_movie_data.js
-
 const axios = require("axios");
 
 // --- CẤU HÌNH ---
-const TMDB_API_KEY = "16010a745e20b55055b922039125b20b"; // <<<< THAY API KEY CỦA BẠN VÀO ĐÂY
+const TMDB_API_KEY = "16010a745e20b55055b922039125b20b";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const PAGES_TO_FETCH = 5; // Lấy 5 trang dữ liệu phim (mỗi trang ~20 phim)

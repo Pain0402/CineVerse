@@ -461,12 +461,9 @@ watch(() => authStore.isAdmin, (newVal) => {
 /* @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&display=swap'); */
 
 /* Theme và biến màu */
-/* .cineverse-theme {
+.admin-movie-management-page {
   background-color: var(--deep-space-black);
-  color: var(--nebula-white);
-  font-family: 'Be Vietnam Pro', sans-serif;
-  min-height: 100vh;
-} */
+}
 
 .loading-container {
   min-height: 100vh;

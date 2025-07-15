@@ -23,38 +23,44 @@ apiClient.interceptors.request.use(
   },
 )
 
-// Interceptor để xử lý lỗi response
+// Interceptor để xử lý response
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`Response:`, response.data)
-
-    // Axios tự động parse JSON, bạn có thể kiểm tra logic 'success' của API nếu cần
-    if (response.data && response.data.status === 'success') {
-      // console.log('Phản hồi:', response.data)
-      return response.data.data // Trả về phần 'data' của response nếu thành công
+    // Bất kỳ status code nào trong khoảng 2xx đều được coi là thành công và sẽ vào đây.
+    // Chúng ta chỉ cần trả về phần dữ liệu mà component cần.
+    if (response.data) {
+      // Ưu tiên trả về response.data.data nếu nó tồn tại (theo chuẩn JSend)
+      if (typeof response.data.data !== 'undefined') {
+        return response.data.data
+      }
     }
-    // Nếu API có cấu trúc response riêng cho lỗi nhưng vẫn trả về 2xx, xử lý ở đây
-    return Promise.reject(new Error(response.data.message || 'Unknown success response format'))
+    // Nếu không có cấu trúc data lồng nhau, trả về toàn bộ response.data
+    return response.data
   },
   (error) => {
-    let errorMessage = 'Lỗi không xác định.'
-    if (error.response) {
-      // Server đã trả về response với status code ngoài 2xx
-      errorMessage = error.response.data.message || error.message
-      // Xử lý lỗi 401 Unauthorized (ví dụ: logout người dùng)
-      if (error.response.status === 401) {
-        const authStore = useAuthStore()
-        authStore.logout() // Gọi hàm logout của Pinia store
-        // Có thể redirect về trang login ở đây hoặc trong Pinia store
-        // router.push({ name: 'auth.login' });
-      }
+    // Bất kỳ status code nào ngoài 2xx sẽ vào đây.
+    let errorMessage = 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+
+    // Lấy thông báo lỗi cụ thể từ response của backend nếu có
+    if (error.response && error.response.data) {
+      errorMessage =
+        error.response.data.message ||
+        error.response.data.error ||
+        JSON.stringify(error.response.data)
     } else if (error.request) {
-      // Request đã được gửi nhưng không nhận được response
       errorMessage = 'Không nhận được phản hồi từ máy chủ.'
     } else {
-      // Lỗi trong quá trình thiết lập request
       errorMessage = error.message
     }
+
+    // Tự động logout nếu gặp lỗi 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      const authStore = useAuthStore()
+      authStore.logout()
+      // Có thể thêm logic chuyển hướng về trang đăng nhập ở đây
+    }
+
+    // Ném ra một Error mới với thông báo đã được chuẩn hóa
     return Promise.reject(new Error(errorMessage))
   },
 )
