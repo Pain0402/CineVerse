@@ -2,16 +2,20 @@
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-nav">
     <div class="container">
       <router-link class="navbar-brand fw-bold" :to="{ name: 'home' }">
-        <img class="navbar-brand-logo rotate-in-center" src="@/assets/imgs/universe.png" alt="">CineVerse</router-link>
+        <img class="navbar-brand-logo rotate-in-center" src="@/assets/imgs/universe.png" alt="CineVerse Logo">CineVerse
+      </router-link>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <form class="d-flex flex-grow-1 mx-lg-5 my-2 my-lg-0" role="search">
+
+        <!-- MỚI: Thêm @submit.prevent và v-model -->
+        <form class="d-flex flex-grow-1 mx-lg-5 my-2 my-lg-0" role="search" @submit.prevent="performSearch">
           <input class="form-control me-2 search-bar" type="search" placeholder="Tìm kiếm phim, series, anime..."
-            aria-label="Search">
+            aria-label="Search" v-model="searchTerm">
         </form>
+
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
           <li class="nav-item">
             <div class="btn-group">
@@ -74,6 +78,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { computed } from 'vue';
@@ -89,6 +94,23 @@ function handleLogout() {
     router.push('/')
   }
 }
+
+
+
+// MỚI: Tạo biến để lưu từ khóa tìm kiếm
+const searchTerm = ref('');
+
+// MỚI: Hàm xử lý khi submit form tìm kiếm
+const performSearch = () => {
+  // Chỉ thực hiện tìm kiếm nếu có từ khóa
+  if (searchTerm.value.trim()) {
+    // Điều hướng đến trang search và truyền từ khóa qua query
+    router.push({ name: 'search', query: { q: searchTerm.value } });
+    // Xóa nội dung trong ô tìm kiếm sau khi đã chuyển trang
+    searchTerm.value = '';
+  }
+};
+
 </script>
 
 <style>

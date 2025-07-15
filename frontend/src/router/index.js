@@ -29,10 +29,26 @@ const routes = [
   //   name: 'user.profile',
   //   component: () => import('@/views/UserProfile.vue'), // Trang profile người dùng
   // },
+  // {
+  //   path: '/admin/movies/add',
+  //   name: 'movie.add',
+  //   component: () => import('@/views/AddMovie.vue'), // Trang thêm phim (Admin)
+  // },
+  {
+    path: '/profile',
+    name: 'user.profile',
+    component: () => import('@/views/UserProfile.vue'),
+  },
+
   {
     path: '/watchlist',
     name: 'user.watchlist',
     component: () => import('@/views/WatchListView.vue'), // Trang danh sách xem
+  },
+  {
+    path: '/search',
+    name: 'search', // Tên này phải khớp với tên trong AppNavbar.vue
+    component: () => import('@/views/SearchView.vue'), // Trỏ đến component trang tìm kiếm
   },
   // // Các route cho đăng ký, đăng nhập
   // {
