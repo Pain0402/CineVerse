@@ -76,7 +76,7 @@
           </table>
         </div>
 
-        <!-- Pagination (Basic) -->
+        <!-- Pagination -->
         <nav aria-label="Page navigation" class="mt-4">
           <ul class="pagination justify-content-center custom-pagination">
             <li class="page-item" :class="{ 'disabled': currentPage === 1 }">
@@ -120,11 +120,11 @@
                   <label for="type" class="form-label text-light primary">Loại <span
                       class="text-danger">*</span></label>
                   <select class="form-select custom-input" id="type" v-model="movieForm.type" required>
-                    <option value="">Chọn loại</option>
+                    <option value="movie">Chọn loại</option>
                     <option value="movie">Phim Điện Ảnh</option>
                     <option value="tv_series">Phim Truyền Hình</option>
-                    <option value="anime_tv">Anime TV</option>
-                    <option value="anime_movie">Anime Điện Ảnh</option>
+                    <!-- <option value="anime_tv">Anime TV</option>
+                    <option value="anime_movie">Anime Điện Ảnh</option> -->
                   </select>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -168,9 +168,11 @@
                 <div class="col-12 mb-3">
                   <label for="genres" class="form-label text-light">Thể loại (chọn nhiều)</label>
                   <select class="form-select custom-input" id="genres" v-model="movieForm.genres" multiple>
-                    <option v-for="genre in availableGenres" :key="genre.id" :value="genre.id">{{ genre.name }}</option>
+                    <option v-for="genre in availableGenres" :key="genre.genre_id" :value="genre.genre_id">{{ genre.name
+                      }}
+                    </option>
                   </select>
-                  <small class="form-text text-muted">Giữ Ctrl/Cmd để chọn nhiều.</small>
+                  <small class="form-text text-light">Giữ Ctrl/Cmd để chọn nhiều.</small>
                 </div>
               </div>
               <div class="modal-footer border-top border-glass mt-4">
@@ -226,12 +228,12 @@ import { Modal } from 'bootstrap'; // Import Bootstrap's Modal JS
 const authStore = useAuthStore();
 
 const movies = ref([]);
+const pagination = ref({});
 const isLoading = ref(true);
 const error = ref(null);
 const searchQuery = ref('');
 const currentPage = ref(1);
-const itemsPerPage = 10; // You can make this dynamic if needed
-const totalMovies = ref(0);
+const itemsPerPage = 10;
 const totalPages = ref(1);
 
 const isEditing = ref(false);
@@ -247,7 +249,7 @@ const movieForm = ref({
   episode_count: 1,
   status: '',
   type: '',
-  genres: [], // Array of genre IDs
+  genres: [],
 });
 const movieModalInstance = ref(null); // To control Bootstrap modal manually
 const deleteConfirmModalInstance = ref(null); // To control Bootstrap delete modal
@@ -256,15 +258,19 @@ const isSubmitting = ref(false); // For form submission loading state
 
 // Mock available genres (in a real app, you'd fetch these from an API like /genres)
 const availableGenres = ref([
-  { id: 1, name: 'Hành động' },
-  { id: 2, name: 'Phiêu lưu' },
-  { id: 3, name: 'Hài' },
-  { id: 4, name: 'Khoa học viễn tưởng' },
-  { id: 5, name: 'Kinh dị' },
-  { id: 6, name: 'Tâm lý' },
-  { id: 7, name: 'Hoạt hình' },
-  { id: 8, name: 'Tài liệu' },
+
 ]);
+
+const fetchGenres = async () => {
+  try {
+    const response = await cineverseService.getAllGenres();
+    availableGenres.value = response;
+  } catch (err) {
+    console.error("Error fetching genres:", err);
+    error.value = 'Không thể tải danh sách thể loại.';
+  }
+};
+
 
 // --- Utility Functions ---
 const handleImageError = (event) => {
@@ -285,17 +291,13 @@ const fetchMovies = async () => {
 
     const queryParams = {
       search: searchQuery.value,
-      // Assuming API supports pagination with 'limit' and 'offset' or 'page' and 'pageSize'
-      // For this example, let's assume 'page' and 'limit'
       page: currentPage.value,
       limit: itemsPerPage,
     };
-    const response = await cineverseService.getMovies(queryParams);
-    movies.value = response; // Assuming response is directly an array of movies
-    // If API returns total count, update totalMovies and totalPages
-    // For now, let's mock totalPages based on fetched data
-    totalMovies.value = movies.value.length; // This is not accurate for real pagination
-    totalPages.value = Math.ceil(totalMovies.value / itemsPerPage) || 1; // Basic calculation
+    const response = await cineverseService.getMoviesAdvanced(queryParams);
+    movies.value = response.movies || [];
+    pagination.value = response.pagination || {};
+    totalPages.value = pagination.value.totalPages;
 
   } catch (err) {
     console.error("Error fetching movies:", err);
@@ -427,6 +429,9 @@ onMounted(async () => {
   movieModalInstance.value = new Modal(document.getElementById('movieModal'));
   deleteConfirmModalInstance.value = new Modal(document.getElementById('deleteConfirmModal'));
 
+  // Fetch genres for dropdown
+  fetchGenres();
+
   // Redirect if not admin
   if (!authStore.isAdmin) {
     error.value = 'Bạn không có quyền truy cập trang này. Vui lòng đăng nhập với tài khoản Admin.';
@@ -444,6 +449,7 @@ watch(searchQuery, () => {
   currentPage.value = 1;
   // You might want to debounce this call for better performance on large datasets
   // For now, it will fetch on every keyup (if not debounced) or on enter key
+  // Fetch genres for dropdown  
 });
 
 // Watch for auth state changes (e.g., user logs out)
@@ -461,12 +467,9 @@ watch(() => authStore.isAdmin, (newVal) => {
 /* @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&display=swap'); */
 
 /* Theme và biến màu */
-/* .cineverse-theme {
+.admin-movie-management-page {
   background-color: var(--deep-space-black);
-  color: var(--nebula-white);
-  font-family: 'Be Vietnam Pro', sans-serif;
-  min-height: 100vh;
-} */
+}
 
 .loading-container {
   min-height: 100vh;

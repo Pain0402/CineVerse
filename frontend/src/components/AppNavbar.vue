@@ -18,6 +18,9 @@
 
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
           <li class="nav-item">
+            <router-link :to="{ name: 'user.watchlist' }" class="nav-link" href="#">Watchlists</router-link>
+          </li>
+          <li class="nav-item">
             <div class="btn-group">
               <button type="button" class="btn action nav-link">Movies</button>
               <ul class="dropdown-menu">
@@ -31,9 +34,7 @@
               </ul>
             </div>
           </li>
-          <li class="nav-item">
-            <router-link :to="{ name: 'user.watchlist' }" class="nav-link" href="#">Watchlists</router-link>
-          </li>
+
           <li class="nav-item">
             <div class="btn-group">
               <button type="button" class="btn action nav-link">Community</button>
@@ -60,6 +61,9 @@
               <button type="button" class="btn action nav-link "><i class="fa-solid fa-circle-user fs-4 text"></i>
               </button>
               <ul v-if="isAuthenticated" class="dropdown-menu ">
+                <li v-if="isAdmin"><router-link :to="{ name: 'admin.dashboard' }"
+                    class="dropdown-item">Administration</router-link>
+                </li>
                 <li><router-link :to="{ name: 'user.watchlist' }" class="dropdown-item">Watchlist</router-link></li>
                 <li><a class="dropdown-item" href="#">Profile</a></li>
                 <li><a class="dropdown-item" href="#">Setting</a></li>
@@ -86,6 +90,7 @@ import { computed } from 'vue';
 
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+const isAdmin = computed(() => authStore.isAdmin);
 const router = useRouter();
 
 function handleLogout() {
@@ -94,7 +99,6 @@ function handleLogout() {
     router.push('/')
   }
 }
-
 
 
 // MỚI: Tạo biến để lưu từ khóa tìm kiếm
@@ -190,13 +194,6 @@ const performSearch = () => {
   font-weight: 700;
   color: var(--nebula-white);
 }
-
-/* .profile .dropdown-menu {
-  right: -80px;
-  width: max-content;
-  text-align: center;
-
-} */
 
 .search-bar {
   background-color: rgba(0, 0, 0, 0.2);

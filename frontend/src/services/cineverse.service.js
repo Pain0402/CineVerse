@@ -82,6 +82,10 @@ const cineverseService = {
     // Endpoint: GET /movies
     return await apiClient.get('/movies', { params: queryParams })
   },
+  async getMoviesAdvanced(queryParams = {}) {
+    // Endpoint: GET /movies
+    return await apiClient.get('/movies/advanced', { params: queryParams })
+  },
 
   async getMovieById(id) {
     // Endpoint: GET /movies/{id}
@@ -184,6 +188,12 @@ const cineverseService = {
   async deleteWatchlistItem(movieId) {
     // Endpoint: DELETE /watchlists/{movieId}
     return await apiClient.delete(`/watchlists/${movieId}`)
+  },
+
+  // --- Genres ---
+  async getAllGenres() {
+    // Endpoint: GET /genres
+    return await apiClient.get('/genres')
   },
 }
 

@@ -8,9 +8,10 @@ const path = require("path");
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const movieRoutes = require("./routes/movieRoutes");
-const userRoutes = require("./routes/userRoutes"); 
+const userRoutes = require("./routes/userRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
-const watchlistRoutes = require("./routes/watchlistRoutes"); 
+const watchlistRoutes = require("./routes/watchlistRoutes");
+const genreRoutes = require("./routes/genreRoutes");
 
 // Import middleware xử lý lỗi
 const errorHandler = require("./middlewares/errorHandler");
@@ -27,7 +28,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reviews", reviewRoutes);
-app.use("/api/watchlists", watchlistRoutes); 
+app.use("/api/watchlists", watchlistRoutes);
+app.use("/api/genres", genreRoutes);
 
 // 3. Cấu hình Swagger/OpenAPI
 const swaggerDoc = require("../docs/openapiSpec.json"); // Import file JSON đã chuyển đổi từ YAML

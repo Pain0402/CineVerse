@@ -103,6 +103,7 @@ onMounted(() => {
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  background-color: inherit;
   padding: 0;
   margin: 0;
 }

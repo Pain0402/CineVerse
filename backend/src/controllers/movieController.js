@@ -14,6 +14,63 @@ const MovieController = {
     }
   },
 
+  getAllMoviesAdvanced: async (req, res) => {
+    try {
+      const {
+        type,
+        genre_id,
+        search,
+        release_year,
+        status,
+        sortBy,
+        sortOrder,
+        page = 1,
+        limit = 10,
+      } = req.query;
+
+      const filters = {
+        type,
+        genre_id: genre_id ? Number(genre_id) : undefined,
+        search,
+        release_year: release_year ? Number(release_year) : undefined,
+        status,
+        sortBy,
+        sortOrder,
+        page: Number(page),
+        limit: Number(limit),
+      };
+
+      // Fetch movies with filters
+      const movies = await MovieService.getAllMovies(filters);
+
+      // Optional: Get total count (for pagination)
+      const totalQuery = await MovieService.getAllMovies({
+        ...filters,
+        page: undefined,
+        limit: undefined,
+      });
+      const total = totalQuery.length;
+
+      return res.json({
+        status: "success",
+        data: {
+          movies,
+          pagination: {
+            total,
+            page: Number(page),
+            limit: Number(limit),
+            totalPages: Math.ceil(total / limit),
+          },
+        },
+      });
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách phim:", err);
+      return res
+        .status(500)
+        .json({ error: "Đã xảy ra lỗi khi lấy dữ liệu phim." });
+    }
+  },
+
   getMovieById: async (req, res, next) => {
     try {
       const { id } = req.params;
