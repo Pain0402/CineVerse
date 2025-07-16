@@ -1,5 +1,5 @@
 const ReviewModel = require("../models/reviewModel");
-const MovieModel = require("../models/movieModel"); 
+const MovieModel = require("../models/movieModel");
 
 const ReviewService = {
   getReviewsByMovie: async (movieId) => {
@@ -15,14 +15,13 @@ const ReviewService = {
   },
 
   createReview: async (userId, movieId, rating, comment) => {
-
     const newReview = await ReviewModel.create({
       user_id: userId,
       movie_id: movieId,
       rating,
       comment,
     });
-    await ReviewService._updateMovieRating(movieId); 
+    await ReviewService._updateMovieRating(movieId);
     return newReview;
   },
 
@@ -50,7 +49,7 @@ const ReviewService = {
     }
 
     await ReviewModel.delete(reviewId);
-    await ReviewService._updateMovieRating(review.movie_id); 
+    await ReviewService._updateMovieRating(review.movie_id);
     return { message: "Review deleted successfully" };
   },
 

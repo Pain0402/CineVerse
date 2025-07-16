@@ -39,7 +39,8 @@
                   <span class="meta-info">{{ movie.release_year }}</span>
                   <span class="meta-info" v-if="movie.runtime_minutes">{{ formatDuration(movie.runtime_minutes)
                   }}</span>
-                  <span class="meta-info" v-if="movie.episode_count && movie.type !== 'movie'">{{ movie.episode_count }}
+                  <span class="meta-info" v-if="movie.episode_count && movie.type !== 'movie'">{{ movie.episode_count
+                  }}
                     tập</span>
                 </div>
                 <div class="genres my-3">
@@ -68,7 +69,8 @@
                       <div class="row g-3 align-items-end">
                         <div class="col-md-6">
                           <label for="watchlistStatus" class="form-label small text-muted">Trạng thái:</label>
-                          <select class="form-select custom-select" id="watchlistStatus" v-model="watchlistForm.status">
+                          <select class="form-select custom-select" id="watchlistStatus"
+                            v-model="watchlistForm.status">
                             <option value="watching">Đang xem</option>
                             <option value="completed">Đã xem</option>
                             <option value="plan_to_watch">Muốn xem</option>
@@ -78,7 +80,8 @@
                         <div class="col-md-3" v-if="movie.type === 'tv_series' || movie.type === 'anime_tv'">
                           <label for="currentEpisode" class="form-label small text-muted">Tập hiện tại:</label>
                           <input type="number" class="form-control custom-input" id="currentEpisode"
-                            v-model.number="watchlistForm.currentEpisode" min="0" :max="movie.episode_count || 9999" />
+                            v-model.number="watchlistForm.currentEpisode" min="0"
+                            :max="movie.episode_count || 9999" />
                         </div>
                         <div class="col-md-3">
                           <button class="btn gradient-button w-100" @click="handleUpdateWatchlist"
@@ -96,11 +99,6 @@
                       </div>
                     </div>
                   </div>
-
-                  <button class="btn btn-outline-light btn-lg ms-md-3 mt-3 mt-md-0">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    Viết đánh giá
-                  </button>
                 </div>
               </div>
             </div>
@@ -125,9 +123,25 @@
 
             <!-- Bình luận -->
             <section>
-              <h3 class="section-title">Bình luận & Đánh giá ({{ reviews.length }})</h3>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="section-title mb-0">Bình luận & Đánh giá ({{ reviews.length }})</h3>
+                <!-- Sửa nút để toggle form -->
+                <button v-if="authStore.isAuthenticated && !isWritingReview" @click="isWritingReview = true" class="btn btn-accent">
+                  <i class="fa-solid fa-pen-to-square me-2"></i>
+                  Viết đánh giá
+                </button>
+              </div>
+
+              <!-- Hiển thị form viết đánh giá -->
+              <ReviewForm 
+                v-if="isWritingReview" 
+                :is-submitting="isSubmittingReview"
+                @submit-review="handleReviewSubmit"
+                @cancel="isWritingReview = false"
+              />
+
               <div class="review-box glass-surface p-4 rounded-3">
-                <div v-if="reviews.length === 0" class="text-center text-muted p-3">Chưa có đánh giá nào. Hãy là người
+                <div v-if="reviews.length === 0 && !isWritingReview" class="text-center text-muted p-3">Chưa có đánh giá nào. Hãy là người
                   đầu tiên!</div>
                 <div v-for="review in reviews" :key="review.review_id" class="review-item mb-4">
                   <div class="d-flex align-items-start">
@@ -168,191 +182,155 @@
 import { ref, watch } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 import cineverseService from '@/services/cineverse.service';
-import { useAuthStore } from '@/stores/auth'; // Import auth store
+import { useAuthStore } from '@/stores/auth';
+import ReviewForm from '@/components/ReviewForm.vue'; // Import form
 
 const route = useRoute();
-const authStore = useAuthStore(); // Use auth store
+const authStore = useAuthStore();
 
 const movie = ref(null);
 const reviews = ref([]);
 const isLoading = ref(true);
 const error = ref(null);
 
-// Watchlist specific states
-const currentWatchlistItem = ref(null); // Stores the watchlist item if it exists
-const isUpdatingWatchlist = ref(false); // To disable buttons during API calls
+// State cho form đánh giá
+const isWritingReview = ref(false);
+const isSubmittingReview = ref(false);
+
+const currentWatchlistItem = ref(null);
+const isUpdatingWatchlist = ref(false);
 const watchlistForm = ref({
-  status: 'plan_to_watch', // Default status when adding
+  status: 'plan_to_watch',
   currentEpisode: 0,
 });
 
-// Hàm tiện ích để chuyển đổi phút thành định dạng giờ và phút
+// Hàm xử lý khi submit form đánh giá
+const handleReviewSubmit = async (reviewData) => {
+  isSubmittingReview.value = true;
+  try {
+    const newReview = await cineverseService.createReview(movie.value.movie_id, reviewData);
+    
+    // Thêm thông tin user hiện tại vào review mới để hiển thị ngay lập tức
+    const displayReview = {
+        ...newReview,
+        username: authStore.currentUser.username,
+        avatar_url: authStore.currentUser.avatar_url
+    };
+
+    reviews.value.unshift(displayReview); // Thêm review mới vào đầu danh sách
+    isWritingReview.value = false; // Ẩn form đi
+    
+  } catch (err) {
+    console.error("Lỗi khi gửi đánh giá:", err);
+    alert('Không thể gửi đánh giá. Vui lòng thử lại.');
+  } finally {
+    isSubmittingReview.value = false;
+  }
+};
+
+// ... các hàm tiện ích và watchlist giữ nguyên ...
 const formatDuration = (minutes) => {
   if (!minutes) return '';
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${h}h ${m}m`;
 };
-
-// Hàm tiện ích để định dạng ngày tháng
 const formatDate = (dateString) => {
   if (!dateString) return '';
   return new Date(dateString).toLocaleDateString('vi-VN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    year: 'numeric', month: 'long', day: 'numeric',
   });
 };
-
-// Hàm tiện ích để nhúng link trailer Youtube
 const getEmbedUrl = (url) => {
   if (!url) return '';
   try {
     const urlObj = new URL(url);
     if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
-      let videoId = '';
-      if (urlObj.hostname.includes('youtube.com')) {
-        videoId = urlObj.searchParams.get('v');
-      } else if (urlObj.hostname.includes('youtu.be')) {
-        videoId = urlObj.pathname.slice(1);
-      }
+      let videoId = urlObj.hostname.includes('youtube.com') ? urlObj.searchParams.get('v') : urlObj.pathname.slice(1);
       return `https://www.youtube.com/embed/${videoId}`;
     }
-  } catch (e) {
-    console.error("Invalid trailer URL", e);
-  }
-  return url; // Trả về url gốc nếu không xử lý được
+  } catch (e) { console.error("Invalid trailer URL", e); }
+  return url;
 };
-
-// Hàm xử lý lỗi hình ảnh
 const handleImageError = (event) => {
   event.target.src = 'https://placehold.co/300x450/0D0C1D/F5F5FA?text=Not+Found';
 };
-
-// --- Watchlist Functions ---
 const fetchWatchlistItemStatus = async (movieId) => {
-  if (!authStore.isAuthenticated) {
-    currentWatchlistItem.value = null; // Reset if not authenticated
-    return;
-  }
+  if (!authStore.isAuthenticated) { currentWatchlistItem.value = null; return; }
   try {
     const item = await cineverseService.getWatchlistItem(movieId);
     currentWatchlistItem.value = item;
-    // Initialize form with existing data
     watchlistForm.value.status = item.status;
     watchlistForm.value.currentEpisode = item.current_episode || 0;
   } catch (err) {
-    // If 404 (Not Found), it means the movie is not in watchlist
-    if (err.message && err.message.includes('Movie not in watchlist')) { // Check for 404 in error message
+    if (err.message && err.message.includes('Movie not in watchlist')) {
       currentWatchlistItem.value = null;
-      console.log("Movie not found in watchlist, ready to add new item.");
-    } else {
-      console.error("Error fetching watchlist item status:", err);
-      // Handle other errors (e.g., network issues)
-    }
+    } else { console.error("Error fetching watchlist item status:", err); }
   }
 };
-
 const handleAddToWatchlist = async () => {
   if (!movie.value || isUpdatingWatchlist.value) return;
-
   isUpdatingWatchlist.value = true;
   try {
-    const newItem = {
-      movieId: movie.value.movie_id,
-      status: 'plan_to_watch', // Default to "plan_to_watch" when first added
-      currentEpisode: 0,
-    };
-    await cineverseService.addOrUpdateWatchlistItem(newItem);
-    await fetchWatchlistItemStatus(movie.value.movie_id); // Re-fetch to update UI
+    await cineverseService.addOrUpdateWatchlistItem({ movieId: movie.value.movie_id, status: 'plan_to_watch', currentEpisode: 0 });
+    await fetchWatchlistItemStatus(movie.value.movie_id);
     alert('Phim đã được thêm vào danh sách xem của bạn!');
   } catch (err) {
     console.error("Error adding to watchlist:", err);
     alert('Không thể thêm phim vào danh sách. Vui lòng thử lại.');
-  } finally {
-    isUpdatingWatchlist.value = false;
-  }
+  } finally { isUpdatingWatchlist.value = false; }
 };
-
 const handleUpdateWatchlist = async () => {
   if (!movie.value || !currentWatchlistItem.value || isUpdatingWatchlist.value) return;
-
   isUpdatingWatchlist.value = true;
   try {
-    const updatedItem = {
-      movieId: movie.value.movie_id,
-      status: watchlistForm.value.status,
-      currentEpisode: watchlistForm.value.currentEpisode,
-    };
-    await cineverseService.addOrUpdateWatchlistItem(updatedItem);
-    await fetchWatchlistItemStatus(movie.value.movie_id); // Re-fetch to update UI
+    await cineverseService.addOrUpdateWatchlistItem({ movieId: movie.value.movie_id, status: watchlistForm.value.status, currentEpisode: watchlistForm.value.currentEpisode });
+    await fetchWatchlistItemStatus(movie.value.movie_id);
     alert('Danh sách xem đã được cập nhật!');
   } catch (err) {
     console.error("Error updating watchlist:", err);
     alert('Không thể cập nhật danh sách. Vui lòng thử lại.');
-  } finally {
-    isUpdatingWatchlist.value = false;
-  }
+  } finally { isUpdatingWatchlist.value = false; }
 };
-
 const handleRemoveFromWatchlist = async () => {
   if (!movie.value || !currentWatchlistItem.value || isUpdatingWatchlist.value) return;
-
-  if (!confirm('Bạn có chắc chắn muốn xóa phim này khỏi danh sách xem?')) {
-    return;
-  }
-
+  if (!confirm('Bạn có chắc chắn muốn xóa phim này khỏi danh sách xem?')) { return; }
   isUpdatingWatchlist.value = true;
   try {
     await cineverseService.deleteWatchlistItem(movie.value.movie_id);
-    currentWatchlistItem.value = null; // Clear item from local state
+    currentWatchlistItem.value = null;
     alert('Phim đã được xóa khỏi danh sách xem.');
   } catch (err) {
     console.error("Error removing from watchlist:", err);
     alert('Không thể xóa phim khỏi danh sách. Vui lòng thử lại.');
-  } finally {
-    isUpdatingWatchlist.value = false;
-  }
+  } finally { isUpdatingWatchlist.value = false; }
 };
-
-
-// Hàm chính để tải dữ liệu phim và reviews
 const fetchMovieData = async (id) => {
   isLoading.value = true;
   error.value = null;
-  movie.value = null; // Reset dữ liệu cũ
-  reviews.value = []; // Reset reviews cũ
-  currentWatchlistItem.value = null; // Reset watchlist item cũ
-
+  movie.value = null;
+  reviews.value = [];
+  currentWatchlistItem.value = null;
   try {
-    // Gọi API song song để tăng tốc độ
     const [movieResponse, reviewsResponse] = await Promise.all([
       cineverseService.getMovieById(id),
       cineverseService.getReviewsForMovie(id)
     ]);
-
-    // Ánh xạ dữ liệu phim từ API
-    movie.value = movieResponse; // Directly assign as the structure matches OpenAPI
-    // Note: 'backdrop_url' is not in OpenAPI Movie schema, assuming it might be added or use poster_url
+    movie.value = movieResponse;
     if (!movie.value.backdrop_url) {
       movie.value.backdrop_url = movie.value.poster_url;
     }
-
-    // Ánh xạ dữ liệu bình luận từ API
     reviews.value = reviewsResponse.map(review => ({
       review_id: review.review_id,
-      username: review.username, // From join
-      avatar_url: review.avatar_url || 'https://placehold.co/100x100/2E73E8/FFFFFF?text=U', // From join
+      username: review.username,
+      avatar_url: review.avatar_url || 'https://placehold.co/100x100/2E73E8/FFFFFF?text=U',
       created_at: review.created_at,
       comment: review.comment,
       rating: review.rating,
     }));
-
-    // Fetch watchlist status after movie data is loaded and if user is authenticated
     if (authStore.isAuthenticated) {
       await fetchWatchlistItemStatus(id);
     }
-
   } catch (err) {
     console.error("Lỗi khi tải chi tiết phim:", err);
     error.value = err.message || 'Không tìm thấy phim bạn yêu cầu hoặc đã có lỗi xảy ra.';
@@ -360,30 +338,14 @@ const fetchMovieData = async (id) => {
     isLoading.value = false;
   }
 };
-
-// Theo dõi sự thay đổi của ID trên URL và gọi lại API
-watch(
-  () => route.params.id,
-  (newId) => {
-    if (newId) {
-      fetchMovieData(newId);
-    }
-  },
-  { immediate: true } // 'immediate: true' sẽ chạy watch ngay lần đầu tiên component được tạo
-);
-
-
-
-// Watch for changes in authentication status (e.g., user logs in/out)
-// to re-fetch watchlist item status
-watch(
-  () => authStore.isAuthenticated,
-  () => {
-    if (movie.value && movie.value.movie_id) {
-      fetchWatchlistItemStatus(movie.value.movie_id);
-    }
+watch(() => route.params.id, (newId) => {
+  if (newId) { fetchMovieData(newId); }
+}, { immediate: true });
+watch(() => authStore.isAuthenticated, () => {
+  if (movie.value && movie.value.movie_id) {
+    fetchWatchlistItemStatus(movie.value.movie_id);
   }
-);
+});
 </script>
 
 <style scoped>

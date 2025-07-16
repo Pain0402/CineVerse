@@ -137,8 +137,8 @@ const handleRegister = async () => {
       password: registerForm.value.password,
     })
     console.log('Thông tin đăng ký:', registerForm.value);
-    alert('Đăng ký thành công! Vui lòng đăng nhập.' + response.message);
-    activeTab.value = 'login'; // Chuyển sang tab đăng nhập sau khi đăng ký
+    alert(response.message);
+    activeTab.value = 'login';
   } catch (error) {
     console.error('Lỗi đăng ký:', error);
     alert('Đăng ký thất bại. Vui lòng thử lại.');
