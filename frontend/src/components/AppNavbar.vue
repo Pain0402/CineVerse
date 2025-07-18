@@ -51,10 +51,26 @@
               <button type="button" class="btn action nav-link">Community</button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#">Clubs</a></li>
+                <li><a class="dropdown-item" href="#">Forums</a></li>
+                <li><a class="dropdown-item" href="#">Events</a></li>
+                <li><a class="dropdown-item" href="#">Polls</a></li>
+                <li><a class="dropdown-item" href="#">Reviews</a></li>
               </ul>
             </div>
           </li>
-
+          <li class="nav-item">
+            <div class="btn-group">
+              <button type="button" class="btn action nav-link">Help</button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Support</a></li>
+                <li><a class="dropdown-item" href="#">Contact Us</a></li>
+                <li><a class="dropdown-item" href="#">About Us</a></li>
+                <li><a class="dropdown-item" href="#">Terms of Service</a></li>
+                <li><a class="dropdown-item" href="#">Privacy Policy</a></li>
+                <li><a class="dropdown-item" href="#">FAQ</a></li>
+              </ul>
+            </div>
+          </li>
           <!-- Dropdown Profile thông minh -->
           <li class="nav-item">
             <div class="btn-group profile">
@@ -203,6 +219,10 @@ const goToSuggestion = (item) => {
   }
 }
 
+.navbar-nav .nav-item {
+  position: relative;
+}
+
 .nav-link:hover,
 .nav-link:focus {
   color: var(--starlight-yellow);
@@ -218,8 +238,7 @@ const goToSuggestion = (item) => {
 
 .btn-group:hover .dropdown-menu {
   display: block;
-  margin-top: 10px;
-  /* Điều chỉnh khoảng cách */
+  margin-top: 30px;
 }
 
 .btn-group .dropdown-menu .dropdown-item {
@@ -233,13 +252,6 @@ const goToSuggestion = (item) => {
   font-weight: 700;
   color: var(--nebula-white);
 }
-
-/* .profile .dropdown-menu {
-  right: -80px;
-  width: max-content;
-  text-align: center;
-
-} */
 
 .search-bar {
   background-color: rgba(0, 0, 0, 0.2);

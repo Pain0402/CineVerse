@@ -1,16 +1,7 @@
 <template>
-  <div class="home-main">
+  <div class="home-main" :style="{ backgroundImage: bannerImage }">
     <div class="cineverse-theme">
-      <!-- Vùng Hero Section (Giữ nguyên) -->
-      <header class="hero-section d-flex align-items-center justify-content-center text-center">
-        <div class="container">
-          <h1 class="display-3 fw-bold">Khám Phá Vũ Trụ Điện Ảnh</h1>
-          <p class="lead">Nơi mọi câu chuyện được kể và mọi cảm xúc được chia sẻ.</p>
-          <a href="#content" class="btn btn-accent btn-lg mt-3">Bắt đầu khám phá</a>
-        </div>
-      </header>
-
-      <!-- Nội dung chính - Các danh sách phim -->
+      <HeroSlider />
       <main id="content" class="py-5">
         <div class="container">
           <div v-if="isLoading">
@@ -37,6 +28,26 @@ import { ref, onMounted } from 'vue';
 import cineverseService from '@/services/cineverse.service'; // <-- Đảm bảo đường dẫn này đúng
 // import { RouterLink } from 'vue-router';
 import MovieList from '@/components/MovieList.vue';
+import HeroSlider from '@/components/HeroSlider.vue';
+
+const imageUrls = [
+  'https://wallpapers.com/images/high/earth-in-the-universe-a879b6hwwtbywot0.webp',
+  'https://wallpapers.com/images/high/massive-glowing-black-hole-in-outer-space-qngqcv0ctzmhbqin.webp',
+  'https://wallpapers.com/images/high/glimmering-view-of-jupiter-s-swirling-storms-from-orbit-dhl1zqfocnm26ot8.webp',
+  'https://wallpapers.com/images/high/mysterious-exoplanet-orbiting-in-a-vibrant-cosmic-galaxy-with-glowing-nebulae-and-distant-stars-zfrdrrubov679nsw.webp',
+  'https://wallpapers.com/images/high/void-5sm9tokk2youui90.webp',
+  'https://wallpapers.com/images/hd/tree-and-vast-universe-hk1a2py5d3x1tpgf.webp',
+  'https://cdn.pixabay.com/photo/2018/08/15/13/10/new-year-background-3608029_1280.jpg'
+];
+
+// 2. Lấy một URL ngẫu nhiên
+const randomIndex = Math.floor(Math.random() * imageUrls.length);
+const selectedUrl = imageUrls[randomIndex];
+
+// 3. Tạo một biến reactive 'ref' để lưu trữ URL và cung cấp cho template.
+//    Logic này sẽ chạy một lần khi component được thiết lập.
+const bannerImage = ref(`url(${selectedUrl})`);
+
 
 // 2. Tạo các biến trạng thái cho dữ liệu, loading và lỗi
 const trendingMovies = ref([]);
@@ -55,7 +66,7 @@ const fetchAllMovies = async () => {
     const [trendingData, topRatedData, animeData] = await Promise.all([
       cineverseService.getMovies({ limit: 10, sortBy: 'rating_count' }),
       cineverseService.getMovies({ limit: 10, sortBy: 'average_rating' }),
-      cineverseService.getMovies({ type: 'anime_tv', limit: 10 }),
+      cineverseService.getMovies({ genre: 'anime', limit: 10 }),
     ]);
 
     // 4. Ánh xạ dữ liệu từ API sang định dạng mà template đang sử dụng
@@ -98,7 +109,7 @@ onMounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-image: url(https://cdn.pixabay.com/photo/2018/08/15/13/10/new-year-background-3608029_1280.jpg);
+  /* background-image: url(https://cdn.pixabay.com/photo/2018/08/15/13/10/new-year-background-3608029_1280.jpg); */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -112,49 +123,5 @@ onMounted(() => {
   color: var(--nebula-white);
   font-family: 'Be Vietnam Pro', sans-serif;
   min-height: 100vh;
-}
-
-/* --- Vùng Hero --- */
-.hero-section {
-  padding-top: 150px;
-  padding-bottom: 100px;
-  min-height: 60vh;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48Y2lyY2xlIGN4PSI4MCIgY3k9IjIwIiByPSIxLjUiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjgwIiByPSIxIiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMC41IiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+');
-  opacity: 0.5;
-  animation: sparkle 20s linear infinite;
-}
-
-@keyframes sparkle {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(-100px);
-  }
-}
-
-.btn-accent {
-  background-color: var(--starlight-yellow);
-  color: var(--deep-space-black);
-  font-weight: bold;
-  border: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.btn-accent:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(255, 217, 77, 0.2);
 }
 </style>

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import router from '@/router'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -24,7 +25,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('token')
       // Có thể thêm logic điều hướng về trang đăng nhập ở đây
       // import router from '@/router';
-      // router.push({ name: 'auth.login' });
+      router.push('/')
     },
   },
 })

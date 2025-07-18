@@ -4,133 +4,178 @@ const axios = require("axios");
 const TMDB_API_KEY = "16010a745e20b55055b922039125b20b";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
-const PAGES_TO_FETCH = 5; // Lấy 5 trang dữ liệu phim (mỗi trang ~20 phim)
+const PAGES_TO_FETCH = 5;
 // --- KẾT THÚC CẤU HÌNH ---
 
-// Hàm helper để gọi API TMDB
 const tmdbApi = axios.create({
   baseURL: TMDB_BASE_URL,
-  params: {
-    api_key: TMDB_API_KEY,
-    language: "vi-VN", // Ưu tiên lấy dữ liệu tiếng Việt
-  },
+  params: { api_key: TMDB_API_KEY, language: "vi-VN" },
 });
 
-/**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- */
-exports.seed = async function (knex) {
-  try {
-    console.log("Bắt đầu quá trình seed dữ liệu phim...");
+async function prepareDatabase(knex) {
+  console.log("Xóa dữ liệu cũ...");
+  await knex("movie_genres").del();
+  await knex("movies").del();
+  await knex("genres").del();
 
-    // Bước 1: Xóa dữ liệu cũ để tránh trùng lặp.
-    // Phải xóa theo đúng thứ tự để không vi phạm khóa ngoại.
-    console.log("Xóa dữ liệu cũ...");
-    await knex("movie_genres").del();
-    await knex("reviews").del();
-    await knex("watchlists").del();
-    await knex("movies").del();
-    await knex("genres").del();
+  console.log("Đang lấy và lưu trữ các thể loại (genres)...");
+  const {
+    data: { genres: movieGenres },
+  } = await tmdbApi.get("/genre/movie/list");
+  const {
+    data: { genres: tvGenres },
+  } = await tmdbApi.get("/genre/tv/list");
+  const allGenres = [...movieGenres, ...tvGenres];
+  const uniqueGenres = Array.from(
+    new Map(allGenres.map((item) => [item.name, item])).values()
+  );
+  await knex("genres").insert(uniqueGenres.map((g) => ({ name: g.name })));
+}
 
-    // Bước 2: Lấy và lưu các thể loại (Genres)
-    console.log("Đang lấy và lưu trữ các thể loại (genres)...");
-    const {
-      data: { genres: genresFromApi },
-    } = await tmdbApi.get("/genre/movie/list");
+async function processMedia(
+  knex,
+  mediaType,
+  endpoint,
+  additionalParams,
+  genresMaps
+) {
+  const { genreNameToIdMap } = genresMaps;
 
-    // Ánh xạ dữ liệu genres từ TMDB API vào cấu trúc bảng `genres`
-    // Ở đây chúng ta thêm tmdb_id để dễ dàng map sau này
-    const genresToInsert = genresFromApi.map((genre) => ({
-      name: genre.name,
-      // Chúng ta sẽ thêm một cột `tmdb_genre_id` vào bảng genres để dễ map
-      // Nếu bạn không muốn thay đổi schema, bạn phải query lại để lấy `genre_id` sau khi insert
-    }));
+  console.log(
+    `\nBắt đầu lấy dữ liệu cho: ${mediaType.toUpperCase()} từ endpoint ${endpoint} với params ${JSON.stringify(
+      additionalParams
+    )}...`
+  );
 
-    await knex("genres").insert(genresToInsert);
-    console.log(`Đã thêm ${genresFromApi.length} thể loại.`);
-
-    // Tạo một map để dễ dàng truy xuất `genre_id` của bạn từ `name`
-    const genresInDb = await knex("genres").select("genre_id", "name");
-    const genreNameToIdMap = new Map(
-      genresInDb.map((g) => [g.name, g.genre_id])
-    );
-
-    // Tạo map từ TMDB genre_id sang tên để dùng cho phim
-    const tmdbGenreIdToNameMap = new Map(
-      genresFromApi.map((g) => [g.id, g.name])
-    );
-
-    // Bước 3: Lấy và lưu các bộ phim (Movies)
-    console.log(`Đang lấy dữ liệu phim từ ${PAGES_TO_FETCH} trang...`);
-    let allMoviesToInsert = [];
-    let allMovieGenreLinks = [];
-
-    for (let page = 1; page <= PAGES_TO_FETCH; page++) {
-      console.log(`- Đang xử lý trang ${page}...`);
+  for (let page = 1; page <= PAGES_TO_FETCH; page++) {
+    console.log(`- Xử lý trang ${page}...`);
+    try {
       const {
-        data: { results: moviesFromApi },
-      } = await tmdbApi.get("/movie/popular", {
-        params: { page },
+        data: { results: mediaList },
+      } = await tmdbApi.get(endpoint, {
+        params: { page, ...additionalParams },
       });
 
-      for (const movie of moviesFromApi) {
-        // Chỉ lấy những phim có đủ thông tin cơ bản
-        if (!movie.overview || !movie.release_date) continue;
+      for (const mediaItem of mediaList) {
+        const { data: details } = await tmdbApi.get(
+          `/${mediaType}/${mediaItem.id}`,
+          {
+            params: { append_to_response: "videos" },
+          }
+        );
 
-        // Thêm phim vào danh sách chờ insert
-        const newMovie = {
-          // movie_id sẽ được tự tạo bằng UUID
-          title: movie.title,
-          original_title: movie.original_title,
-          release_year: parseInt(movie.release_date.substring(0, 4)),
-          synopsis: movie.overview,
-          poster_url: movie.poster_path
-            ? `${IMAGE_BASE_URL}${movie.poster_path}`
-            : null,
-          // Bạn có thể thêm logic để lấy trailer_url nếu cần
-          average_rating: movie.vote_average,
-          rating_count: movie.vote_count,
-          type: "movie", // Mặc định là movie vì ta đang lấy từ endpoint /movie/popular
-          // Thêm tmdb_id vào schema của bạn là một ý tưởng RẤT TỐT để đồng bộ sau này
-          // tmdb_id: movie.id
+        if (!details.overview || !details.poster_path) continue;
+
+        // --- LOGIC TÌM KIẾM TRAILER NÂNG CAO ---
+        const videos = details.videos?.results || [];
+        let trailer = null;
+
+        // 1. Tạo danh sách ưu tiên các loại video
+        const priorityTypes = [
+          "Trailer",
+          "Teaser",
+          "Clip",
+          "Featurette",
+          "Opening",
+        ];
+
+        // 2. Tìm video theo thứ tự ưu tiên
+        for (const type of priorityTypes) {
+          trailer = videos.find((v) => v.site === "YouTube" && v.type === type);
+          if (trailer) break; // Nếu tìm thấy, dừng vòng lặp
+        }
+
+        // 3. Nếu vẫn không tìm thấy, lấy video YouTube đầu tiên có trong danh sách
+        if (!trailer) {
+          trailer = videos.find((v) => v.site === "YouTube");
+        }
+
+        // 4. Tạo URL hoàn chỉnh (định dạng URL đã được sửa lại cho đúng)
+        const trailerUrl = trailer
+          ? `https://www.youtube.com/watch?v=${trailer.key}`
+          : null;
+        // --- KẾT THÚC LOGIC TÌM KIẾM TRAILER ---
+
+        const allowedStatus = ["released", "airing", "upcoming", "cancelled"];
+        let currentStatus = (details.status || "released").toLowerCase();
+        if (currentStatus === "returning series") currentStatus = "airing";
+        else if (!allowedStatus.includes(currentStatus))
+          currentStatus = "released";
+
+        const newItem = {
+          tmdb_id: details.id,
+          title: details.title || details.name,
+          original_title: details.original_title || details.original_name,
+          release_date: details.release_date || details.first_air_date || null,
+          synopsis: details.overview,
+          poster_url: `${IMAGE_BASE_URL}${details.poster_path}`,
+          trailer_url: trailerUrl, // <-- Dữ liệu trailer tốt hơn
+          runtime_minutes:
+            details.runtime ||
+            (details.episode_run_time && details.episode_run_time[0]) ||
+            null,
+          episode_count: details.number_of_episodes || 1,
+          type: mediaType === "movie" ? "movie" : "tv_series",
+          status: currentStatus,
+          average_rating: details.vote_average,
+          rating_count: details.vote_count,
         };
 
-        // Dùng transaction để đảm bảo cả movie và movie_genres đều được thêm
         await knex.transaction(async (trx) => {
-          // Chèn phim và lấy ra movie_id vừa được tạo
-          const [insertedMovie] = await trx("movies")
-            .insert(newMovie)
+          const [insertedItem] = await trx("movies")
+            .insert(newItem)
+            .onConflict("tmdb_id")
+            .ignore()
             .returning("movie_id");
-          const newId = insertedMovie.movie_id || insertedMovie; // Tương thích với các CSDL khác nhau
+          if (!insertedItem) return;
 
-          // Xử lý liên kết movie-genre
-          const genreLinksForThisMovie = movie.genre_ids
-            .map((tmdbGenreId) => {
-              const genreName = tmdbGenreIdToNameMap.get(tmdbGenreId);
-              const internalGenreId = genreNameToIdMap.get(genreName);
-              if (internalGenreId) {
-                return {
-                  movie_id: newId,
-                  genre_id: internalGenreId,
-                };
-              }
+          const newId = insertedItem.movie_id || insertedItem;
+
+          const genreLinks = (details.genres || [])
+            .map((genre) => {
+              const internalId = genreNameToIdMap.get(genre.name);
+              if (internalId) return { movie_id: newId, genre_id: internalId };
               return null;
             })
-            .filter(Boolean); // Lọc ra các giá trị null
+            .filter(Boolean);
 
-          if (genreLinksForThisMovie.length > 0) {
-            await trx("movie_genres").insert(genreLinksForThisMovie);
+          if (genreLinks.length > 0) {
+            await trx("movie_genres")
+              .insert(genreLinks)
+              .onConflict(["movie_id", "genre_id"])
+              .ignore();
           }
         });
       }
-      // Thêm một khoảng nghỉ nhỏ để không spam API
-      await new Promise((res) => setTimeout(res, 250));
+      await new Promise((res) => setTimeout(res, 500));
+    } catch (error) {
+      console.warn(
+        `Lỗi khi lấy trang ${page} từ ${endpoint}. Lỗi: ${error.message}. Bỏ qua...`
+      );
     }
-
-    console.log("✅ Quá trình seed dữ liệu đã hoàn tất thành công!");
-  } catch (error) {
-    console.error("❌ Đã xảy ra lỗi trong quá trình seed dữ liệu:");
-    console.error(error);
   }
+}
+
+exports.seed = async function (knex) {
+  await prepareDatabase(knex);
+
+  const genresInDb = await knex("genres").select("genre_id", "name");
+  const genreNameToIdMap = new Map(genresInDb.map((g) => [g.name, g.genre_id]));
+  const genresMaps = { genreNameToIdMap };
+
+  // Phim Điện ảnh
+  await processMedia(knex, "movie", "/movie/popular", {}, genresMaps);
+  await processMedia(knex, "movie", "/movie/top_rated", {}, genresMaps);
+
+  // Phim Bộ
+  await processMedia(knex, "tv", "/tv/popular", {}, genresMaps);
+  await processMedia(knex, "tv", "/tv/top_rated", {}, genresMaps);
+
+  // Anime
+  const animeParams = { with_genres: "16", with_origin_country: "JP" };
+  await processMedia(knex, "tv", "/discover/tv", animeParams, genresMaps);
+
+  console.log(
+    "✅ Hoàn tất seed dữ liệu chi tiết cho phim, TV series và Anime."
+  );
 };

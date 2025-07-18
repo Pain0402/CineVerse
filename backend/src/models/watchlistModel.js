@@ -12,7 +12,7 @@ const WatchlistModel = {
         "movies.title",
         "movies.poster_url",
         "movies.type",
-        "movies.release_year"
+        "movies.release_date"
       );
 
     if (filters.status) {

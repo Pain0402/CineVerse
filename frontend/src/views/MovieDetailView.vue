@@ -20,7 +20,8 @@
     <!-- Nội dung chính khi đã có dữ liệu -->
     <div v-else-if="movie">
       <!-- Banner Phim -->
-      <header class="movie-banner" :style="{ backgroundImage: `url(${movie.backdrop_url || movie.poster_url})` }">
+      <!-- :style="{ backgroundImage: `url(${movie.backdrop_url || movie.poster_url})` }" -->
+      <header class="movie-banner" :style="{ backgroundImage: bannerImage }">
         <div class="banner-overlay">
           <div class="container">
             <div class="row align-items-center">
@@ -30,7 +31,7 @@
               </div>
               <div class="col-md-8 mt-4 mt-md-0">
                 <h1 class="display-4 fw-bold">{{ movie.title }}</h1>
-                <p class="text-muted fst-italic">{{ movie.original_title }}</p>
+                <p class="text-light fst-italic">{{ movie.original_title }}</p>
                 <div class="d-flex align-items-center gap-3 my-3">
                   <div v-if="movie.average_rating > 0" class="rating-badge">
                     <i class="fa-solid fa-star"></i>
@@ -38,9 +39,9 @@
                   </div>
                   <span class="meta-info">{{ movie.release_year }}</span>
                   <span class="meta-info" v-if="movie.runtime_minutes">{{ formatDuration(movie.runtime_minutes)
-                  }}</span>
+                    }}</span>
                   <span class="meta-info" v-if="movie.episode_count && movie.type !== 'movie'">{{ movie.episode_count
-                  }}
+                    }}
                     tập</span>
                 </div>
                 <div class="genres my-3">
@@ -69,8 +70,7 @@
                       <div class="row g-3 align-items-end">
                         <div class="col-md-6">
                           <label for="watchlistStatus" class="form-label small text-muted">Trạng thái:</label>
-                          <select class="form-select custom-select" id="watchlistStatus"
-                            v-model="watchlistForm.status">
+                          <select class="form-select custom-select" id="watchlistStatus" v-model="watchlistForm.status">
                             <option value="watching">Đang xem</option>
                             <option value="completed">Đã xem</option>
                             <option value="plan_to_watch">Muốn xem</option>
@@ -80,8 +80,7 @@
                         <div class="col-md-3" v-if="movie.type === 'tv_series' || movie.type === 'anime_tv'">
                           <label for="currentEpisode" class="form-label small text-muted">Tập hiện tại:</label>
                           <input type="number" class="form-control custom-input" id="currentEpisode"
-                            v-model.number="watchlistForm.currentEpisode" min="0"
-                            :max="movie.episode_count || 9999" />
+                            v-model.number="watchlistForm.currentEpisode" min="0" :max="movie.episode_count || 9999" />
                         </div>
                         <div class="col-md-3">
                           <button class="btn gradient-button w-100" @click="handleUpdateWatchlist"
@@ -126,22 +125,20 @@
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="section-title mb-0">Bình luận & Đánh giá ({{ reviews.length }})</h3>
                 <!-- Sửa nút để toggle form -->
-                <button v-if="authStore.isAuthenticated && !isWritingReview" @click="isWritingReview = true" class="btn btn-accent">
+                <button v-if="authStore.isAuthenticated && !isWritingReview" @click="isWritingReview = true"
+                  class="btn btn-accent">
                   <i class="fa-solid fa-pen-to-square me-2"></i>
                   Viết đánh giá
                 </button>
               </div>
 
               <!-- Hiển thị form viết đánh giá -->
-              <ReviewForm 
-                v-if="isWritingReview" 
-                :is-submitting="isSubmittingReview"
-                @submit-review="handleReviewSubmit"
-                @cancel="isWritingReview = false"
-              />
+              <ReviewForm v-if="isWritingReview" :is-submitting="isSubmittingReview" @submit-review="handleReviewSubmit"
+                @cancel="isWritingReview = false" />
 
               <div class="review-box glass-surface p-4 rounded-3">
-                <div v-if="reviews.length === 0 && !isWritingReview" class="text-center text-muted p-3">Chưa có đánh giá nào. Hãy là người
+                <div v-if="reviews.length === 0 && !isWritingReview" class="text-center text-muted p-3">Chưa có đánh giá
+                  nào. Hãy là người
                   đầu tiên!</div>
                 <div v-for="review in reviews" :key="review.review_id" class="review-item mb-4">
                   <div class="d-flex align-items-start">
@@ -204,22 +201,40 @@ const watchlistForm = ref({
   currentEpisode: 0,
 });
 
+// 1. Tạo một mảng chứa 5 URL ảnh của bạn
+const imageUrls = [
+  'https://wallpapers.com/images/high/earth-in-the-universe-a879b6hwwtbywot0.webp',
+  'https://wallpapers.com/images/high/massive-glowing-black-hole-in-outer-space-qngqcv0ctzmhbqin.webp',
+  'https://wallpapers.com/images/high/glimmering-view-of-jupiter-s-swirling-storms-from-orbit-dhl1zqfocnm26ot8.webp',
+  'https://wallpapers.com/images/high/mysterious-exoplanet-orbiting-in-a-vibrant-cosmic-galaxy-with-glowing-nebulae-and-distant-stars-zfrdrrubov679nsw.webp',
+  'https://wallpapers.com/images/high/void-5sm9tokk2youui90.webp',
+  'https://wallpapers.com/images/hd/tree-and-vast-universe-hk1a2py5d3x1tpgf.webp'
+];
+
+// 2. Lấy một URL ngẫu nhiên
+const randomIndex = Math.floor(Math.random() * imageUrls.length);
+const selectedUrl = imageUrls[randomIndex];
+
+// 3. Tạo một biến reactive 'ref' để lưu trữ URL và cung cấp cho template.
+//    Logic này sẽ chạy một lần khi component được thiết lập.
+const bannerImage = ref(`url(${selectedUrl})`);
+
 // Hàm xử lý khi submit form đánh giá
 const handleReviewSubmit = async (reviewData) => {
   isSubmittingReview.value = true;
   try {
     const newReview = await cineverseService.createReview(movie.value.movie_id, reviewData);
-    
+
     // Thêm thông tin user hiện tại vào review mới để hiển thị ngay lập tức
     const displayReview = {
-        ...newReview,
-        username: authStore.currentUser.username,
-        avatar_url: authStore.currentUser.avatar_url
+      ...newReview,
+      username: authStore.currentUser.username,
+      avatar_url: authStore.currentUser.avatar_url
     };
 
     reviews.value.unshift(displayReview); // Thêm review mới vào đầu danh sách
     isWritingReview.value = false; // Ẩn form đi
-    
+
   } catch (err) {
     console.error("Lỗi khi gửi đánh giá:", err);
     alert('Không thể gửi đánh giá. Vui lòng thử lại.');
@@ -372,12 +387,20 @@ watch(() => authStore.isAuthenticated, () => {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+
 }
 
 .banner-overlay {
   position: relative;
   z-index: 1;
-  background: linear-gradient(to top, var(--deep-space-black) 10%, rgba(13, 12, 29, 0.7) 50%, rgba(13, 12, 29, 0.4) 100%);
+  /* background: linear-gradient(to top, var(--deep-space-black) 10%, rgba(13, 12, 29, 0.7) 50%, rgba(13, 12, 29, 0.4) 100%); */
+  background-color: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 10px;
+  padding: 2rem;
+  /* margin: 0 18%; */
 }
 
 .movie-poster {
