@@ -20,8 +20,8 @@
     <!-- Nội dung chính khi đã có dữ liệu -->
     <div v-else-if="movie">
       <!-- Banner Phim -->
-      <!-- :style="{ backgroundImage: `url(${movie.backdrop_url || movie.poster_url})` }" -->
-      <header class="movie-banner" :style="{ backgroundImage: bannerImage }">
+      <header class="movie-banner" :style="{ backgroundImage: `url(${movie.backdrop_url || movie.poster_url})` }">
+        <!-- ... code banner giữ nguyên ... -->
         <div class="banner-overlay">
           <div class="container">
             <div class="row align-items-center">
@@ -31,7 +31,7 @@
               </div>
               <div class="col-md-8 mt-4 mt-md-0">
                 <h1 class="display-4 fw-bold">{{ movie.title }}</h1>
-                <p class="text-light fst-italic">{{ movie.original_title }}</p>
+                <p class="text-muted fst-italic">{{ movie.original_title }}</p>
                 <div class="d-flex align-items-center gap-3 my-3">
                   <div v-if="movie.average_rating > 0" class="rating-badge">
                     <i class="fa-solid fa-star"></i>
@@ -39,9 +39,9 @@
                   </div>
                   <span class="meta-info">{{ movie.release_year }}</span>
                   <span class="meta-info" v-if="movie.runtime_minutes">{{ formatDuration(movie.runtime_minutes)
-                    }}</span>
+                  }}</span>
                   <span class="meta-info" v-if="movie.episode_count && movie.type !== 'movie'">{{ movie.episode_count
-                    }}
+                  }}
                     tập</span>
                 </div>
                 <div class="genres my-3">
@@ -70,7 +70,8 @@
                       <div class="row g-3 align-items-end">
                         <div class="col-md-6">
                           <label for="watchlistStatus" class="form-label small text-muted">Trạng thái:</label>
-                          <select class="form-select custom-select" id="watchlistStatus" v-model="watchlistForm.status">
+                          <select class="form-select custom-select" id="watchlistStatus"
+                            v-model="watchlistForm.status">
                             <option value="watching">Đang xem</option>
                             <option value="completed">Đã xem</option>
                             <option value="plan_to_watch">Muốn xem</option>
@@ -80,7 +81,8 @@
                         <div class="col-md-3" v-if="movie.type === 'tv_series' || movie.type === 'anime_tv'">
                           <label for="currentEpisode" class="form-label small text-muted">Tập hiện tại:</label>
                           <input type="number" class="form-control custom-input" id="currentEpisode"
-                            v-model.number="watchlistForm.currentEpisode" min="0" :max="movie.episode_count || 9999" />
+                            v-model.number="watchlistForm.currentEpisode" min="0"
+                            :max="movie.episode_count || 9999" />
                         </div>
                         <div class="col-md-3">
                           <button class="btn gradient-button w-100" @click="handleUpdateWatchlist"
@@ -110,7 +112,7 @@
         <div class="row">
           <!-- Cột chính (bên trái) -->
           <div class="col-lg-8">
-            <!-- Trailer & Media -->
+            <!-- ... code trailer giữ nguyên ... -->
             <section v-if="movie.trailer_url" class="mb-5">
               <h3 class="section-title">Trailer</h3>
               <div class="ratio ratio-16x9 rounded-3 overflow-hidden">
@@ -119,37 +121,63 @@
                   allowfullscreen></iframe>
               </div>
             </section>
-
             <!-- Bình luận -->
             <section>
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="section-title mb-0">Bình luận & Đánh giá ({{ reviews.length }})</h3>
-                <!-- Sửa nút để toggle form -->
-                <button v-if="authStore.isAuthenticated && !isWritingReview" @click="isWritingReview = true"
-                  class="btn btn-accent">
+                <!-- Nút "Viết đánh giá" chỉ hiện khi người dùng chưa review phim này -->
+                <button v-if="authStore.isAuthenticated && !isWritingReview && !userHasReviewed" @click="isWritingReview = true" class="btn btn-accent">
                   <i class="fa-solid fa-pen-to-square me-2"></i>
                   Viết đánh giá
                 </button>
               </div>
 
-              <!-- Hiển thị form viết đánh giá -->
-              <ReviewForm v-if="isWritingReview" :is-submitting="isSubmittingReview" @submit-review="handleReviewSubmit"
-                @cancel="isWritingReview = false" />
+              <!-- Form viết/sửa đánh giá -->
+              <ReviewForm 
+                v-if="isWritingReview" 
+                :is-submitting="isSubmittingReview"
+                @submit-review="handleReviewSubmit"
+                @cancel="isWritingReview = false"
+              />
 
               <div class="review-box glass-surface p-4 rounded-3">
-                <div v-if="reviews.length === 0 && !isWritingReview" class="text-center text-muted p-3">Chưa có đánh giá
-                  nào. Hãy là người
-                  đầu tiên!</div>
-                <div v-for="review in reviews" :key="review.review_id" class="review-item mb-4">
-                  <div class="d-flex align-items-start">
-                    <img :src="review.avatar_url || 'https://placehold.co/100x100/2E73E8/FFFFFF?text=U'"
-                      class="rounded-circle me-3" width="50" height="50" @error="handleImageError">
-                    <div>
-                      <h6 class="mb-0">{{ review.username }}</h6>
-                      <p class="text-muted small">{{ formatDate(review.created_at) }}</p>
+                <div v-if="reviews.length === 0 && !isWritingReview" class="text-center text-muted p-3">Chưa có đánh giá nào. Hãy là người đầu tiên!</div>
+                
+                <!-- Hiển thị danh sách review -->
+                <div v-for="(review, index) in reviews" :key="review.review_id" class="review-item mb-4">
+                  <!-- Form CHỈNH SỬA review -->
+                  <ReviewForm
+                    v-if="editingReviewId === review.review_id"
+                    :is-submitting="isSubmittingReview"
+                    :initial-comment="review.comment"
+                    :initial-rating="review.rating"
+                    @submit-review="handleUpdateReviewSubmit"
+                    @cancel="editingReviewId = null"
+                  />
+                  <!-- Hiển thị review thông thường -->
+                  <div v-else>
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="d-flex align-items-center">
+                        <img :src="review.avatar_url || 'https://placehold.co/50x50/2E73E8/FFFFFF?text=U'"
+                          class="rounded-circle me-3" width="50" height="50" @error="handleImageError">
+                        <div>
+                          <h6 class="mb-0">{{ review.username }}</h6>
+                          <p class="text-white-50 small mb-0">{{ formatDate(review.created_at) }}</p>
+                        </div>
+                      </div>
+                      <!-- SỬA ĐỔI: Hiển thị điểm rating của review -->
+                      <div class="rating-display">
+                        <i class="fa-solid fa-star me-1"></i>
+                        <strong>{{ review.rating }}</strong>
+                      </div>
+                    </div>
+                    <p class="mt-2 mb-2">{{ review.comment }}</p>
+                    <!-- SỬA ĐỔI: Nút Sửa/Xóa chỉ hiện cho chủ nhân của review -->
+                    <div v-if="authStore.currentUser?.user_id === review.user_id" class="review-actions mt-2">
+                      <button class="btn btn-sm btn-link-light me-2" @click="editingReviewId = review.review_id">Sửa</button>
+                      <button class="btn btn-sm btn-link-danger" @click="handleDeleteReview(review.review_id, index)">Xóa</button>
                     </div>
                   </div>
-                  <p class="mt-2">{{ review.comment }}</p>
                 </div>
               </div>
             </section>
@@ -157,6 +185,7 @@
 
           <!-- Cột phụ (bên phải) -->
           <aside class="col-lg-4 mt-5 mt-lg-0">
+            <!-- ... code cột phụ giữ nguyên ... -->
             <div class="glass-sidebar p-4 rounded-3 sticky-top">
               <h4 class="sidebar-title">Thông tin</h4>
               <ul class="list-unstyled info-list">
@@ -176,11 +205,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 import cineverseService from '@/services/cineverse.service';
 import { useAuthStore } from '@/stores/auth';
-import ReviewForm from '@/components/ReviewForm.vue'; // Import form
+import ReviewForm from '@/components/ReviewForm.vue';
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -193,53 +222,60 @@ const error = ref(null);
 // State cho form đánh giá
 const isWritingReview = ref(false);
 const isSubmittingReview = ref(false);
+const editingReviewId = ref(null); // ID của review đang được sửa
 
-const currentWatchlistItem = ref(null);
-const isUpdatingWatchlist = ref(false);
-const watchlistForm = ref({
-  status: 'plan_to_watch',
-  currentEpisode: 0,
+// Computed property để kiểm tra xem user đã review phim này chưa
+const userHasReviewed = computed(() => {
+  if (!authStore.isAuthenticated) return false;
+  return reviews.value.some(r => r.user_id === authStore.currentUser.user_id);
 });
 
-// 1. Tạo một mảng chứa 5 URL ảnh của bạn
-const imageUrls = [
-  'https://wallpapers.com/images/high/earth-in-the-universe-a879b6hwwtbywot0.webp',
-  'https://wallpapers.com/images/high/massive-glowing-black-hole-in-outer-space-qngqcv0ctzmhbqin.webp',
-  'https://wallpapers.com/images/high/glimmering-view-of-jupiter-s-swirling-storms-from-orbit-dhl1zqfocnm26ot8.webp',
-  'https://wallpapers.com/images/high/mysterious-exoplanet-orbiting-in-a-vibrant-cosmic-galaxy-with-glowing-nebulae-and-distant-stars-zfrdrrubov679nsw.webp',
-  'https://wallpapers.com/images/high/void-5sm9tokk2youui90.webp',
-  'https://wallpapers.com/images/hd/tree-and-vast-universe-hk1a2py5d3x1tpgf.webp'
-];
+// ... các state và hàm watchlist giữ nguyên ...
+const currentWatchlistItem = ref(null);
+const isUpdatingWatchlist = ref(false);
+const watchlistForm = ref({ status: 'plan_to_watch', currentEpisode: 0 });
 
-// 2. Lấy một URL ngẫu nhiên
-const randomIndex = Math.floor(Math.random() * imageUrls.length);
-const selectedUrl = imageUrls[randomIndex];
+// --- CÁC HÀM XỬ LÝ REVIEW ĐÃ ĐƯỢC CẬP NHẬT ---
 
-// 3. Tạo một biến reactive 'ref' để lưu trữ URL và cung cấp cho template.
-//    Logic này sẽ chạy một lần khi component được thiết lập.
-const bannerImage = ref(`url(${selectedUrl})`);
-
-// Hàm xử lý khi submit form đánh giá
 const handleReviewSubmit = async (reviewData) => {
   isSubmittingReview.value = true;
   try {
-    const newReview = await cineverseService.createReview(movie.value.movie_id, reviewData);
-
-    // Thêm thông tin user hiện tại vào review mới để hiển thị ngay lập tức
-    const displayReview = {
-      ...newReview,
-      username: authStore.currentUser.username,
-      avatar_url: authStore.currentUser.avatar_url
-    };
-
-    reviews.value.unshift(displayReview); // Thêm review mới vào đầu danh sách
-    isWritingReview.value = false; // Ẩn form đi
-
+    await cineverseService.createReview(movie.value.movie_id, reviewData);
+    // Sau khi tạo thành công, fetch lại toàn bộ dữ liệu để cập nhật cả điểm trung bình
+    await fetchMovieData(movie.value.movie_id);
+    isWritingReview.value = false;
   } catch (err) {
-    console.error("Lỗi khi gửi đánh giá:", err);
-    alert('Không thể gửi đánh giá. Vui lòng thử lại.');
+    alert(`Lỗi: ${err.message}`);
   } finally {
     isSubmittingReview.value = false;
+  }
+};
+
+const handleUpdateReviewSubmit = async (reviewData) => {
+  if (!editingReviewId.value) return;
+  isSubmittingReview.value = true;
+  try {
+    await cineverseService.updateReview(editingReviewId.value, reviewData);
+    // Fetch lại dữ liệu để cập nhật review và điểm trung bình
+    await fetchMovieData(movie.value.movie_id);
+    editingReviewId.value = null; // Ẩn form sửa
+  } catch (err) {
+    alert(`Lỗi: ${err.message}`);
+  } finally {
+    isSubmittingReview.value = false;
+  }
+};
+
+const handleDeleteReview = async (reviewId, index) => {
+  if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+    try {
+      await cineverseService.deleteReview(reviewId);
+      // Xóa review khỏi danh sách và fetch lại dữ liệu để cập nhật điểm
+      reviews.value.splice(index, 1);
+      await fetchMovieData(movie.value.movie_id);
+    } catch (err) {
+      alert(`Lỗi: ${err.message}`);
+    }
   }
 };
 
@@ -336,12 +372,8 @@ const fetchMovieData = async (id) => {
       movie.value.backdrop_url = movie.value.poster_url;
     }
     reviews.value = reviewsResponse.map(review => ({
-      review_id: review.review_id,
-      username: review.username,
-      avatar_url: review.avatar_url || 'https://placehold.co/100x100/2E73E8/FFFFFF?text=U',
-      created_at: review.created_at,
-      comment: review.comment,
-      rating: review.rating,
+      ...review, // Giữ lại tất cả các trường từ API, bao gồm cả user_id
+      avatar_url: review.avatar_url || 'https://placehold.co/50x50/2E73E8/FFFFFF?text=U',
     }));
     if (authStore.isAuthenticated) {
       await fetchWatchlistItemStatus(id);
@@ -364,7 +396,6 @@ watch(() => authStore.isAuthenticated, () => {
 </script>
 
 <style scoped>
-/* (Giữ nguyên toàn bộ CSS từ file MovieDetailView trước đó) */
 /* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&display=swap');
 
@@ -560,4 +591,26 @@ watch(() => authStore.isAuthenticated, () => {
   box-shadow: 0 6px 20px rgba(46, 115, 232, 0.4);
   transform: translateY(-2px);
 }
+
+.rating-display {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  color: var(--starlight-yellow);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.review-actions {
+  text-align: right;
+}
+.btn-link-light, .btn-link-danger {
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+}
+.btn-link-light { color: var(--nebula-white); }
+.btn-link-light:hover { color: var(--starlight-yellow); }
+.btn-link-danger { color: #dc3545; }
+.btn-link-danger:hover { color: #ff5b6c; }
+
 </style>
