@@ -77,13 +77,12 @@
                   </p>
                   <div class="d-flex flex-wrap gap-2 mt-3">
                     <button class="btn btn-sm btn-outline-light custom-outline-btn">
-                      <i class="bi bi-pencil"></i>
+                      <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-light custom-outline-btn">
-                      <i class="bi bi-eye"></i>
-                    </button>
+                      <i class="fa-solid fa-eye"></i> </button>
                     <button class="btn btn-sm btn-outline-danger custom-outline-btn">
-                      <i class="bi bi-trash"></i>
+                      <i class="fa-solid fa-trash"></i>
                     </button>
                   </div>
                 </div>
@@ -173,10 +172,8 @@ const fetchWatchlist = async (status) => {
       console.warn(`No API status mapping found for tab: ${status}`);
       return;
     }
-
     const response = await cineverseService.getWatchlist({ status: apiStatusMap });
-    // The API returns 'data' as an array of WatchlistItem
-    // We need to map this to our local watchlistsData structure
+
     watchlistsData.value[status] = response;
   } catch (error) {
     console.error(`Error fetching ${status} watchlist:`, error);
@@ -210,11 +207,10 @@ watch(activeTab, (newTab) => {
 <style scoped>
 .watchlists-view-container {
   background-color: var(--deep-space-black);
-  background-image: linear-gradient(175deg,
-      rgba(46, 115, 232, 0.1) -10%,
-      rgba(90, 66, 212, 0.15) 40%,
-      var(--deep-space-black) 80%);
-  /* font-family: 'Be Vietnam Pro', sans-serif; */
+  background-image: url(https://wallpapers.com/images/high/void-5sm9tokk2youui90.webp);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
   color: var(--nebula-white);
   min-height: 100vh;
   width: 100%;
@@ -276,21 +272,20 @@ watch(activeTab, (newTab) => {
 .bg-yellow-gradient {
   background: linear-gradient(45deg, var(--starlight-yellow), rgba(255, 217, 77, 0.7)) !important;
   color: var(--deep-space-black) !important;
-  /* Đảm bảo chữ rõ trên nền vàng */
 }
 
 /* Custom tabs */
 .custom-tab-link {
   color: var(--nebula-white);
-  border: 1px solid var(--border-glass);
-  background-color: transparent;
   transition: all 0.3s ease;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   margin: 0 0.25rem;
-  /* Khoảng cách giữa các tab */
   border-radius: 0.75rem;
-  /* Bo góc nhẹ nhàng */
+  background-color: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 .custom-tab-link:hover {

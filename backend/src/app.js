@@ -1,9 +1,6 @@
-// src/app.js
 const express = require("express");
 const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
-const YAML = require("yamljs");
-const path = require("path");
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
@@ -12,6 +9,7 @@ const userRoutes = require("./routes/userRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const watchlistRoutes = require("./routes/watchlistRoutes");
 const genreRoutes = require("./routes/genreRoutes");
+const uploadAvatarRoutes = require("./routes/uploadAvatarRoutes");
 
 // Import middleware xử lý lỗi
 const errorHandler = require("./middlewares/errorHandler");
@@ -23,6 +21,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
+app.use("/uploads", express.static("public/uploads"));
+
 // 2. Định nghĩa các routes
 app.use("/api/auth", authRoutes);
 app.use("/api/movies", movieRoutes);
@@ -30,6 +30,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/watchlists", watchlistRoutes);
 app.use("/api/genres", genreRoutes);
+app.use("/api/", uploadAvatarRoutes);
 
 // 3. Cấu hình Swagger/OpenAPI
 const swaggerDoc = require("../docs/openapiSpec.json"); // Import file JSON đã chuyển đổi từ YAML

@@ -23,9 +23,12 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       localStorage.removeItem('user')
       localStorage.removeItem('token')
-      // Có thể thêm logic điều hướng về trang đăng nhập ở đây
-      // import router from '@/router';
       router.push('/')
+    },
+    updateUserAvatar(newAvatarUrl) {
+      if (this.currentUser) {
+        this.currentUser.avatar_url = newAvatarUrl
+      }
     },
   },
 })

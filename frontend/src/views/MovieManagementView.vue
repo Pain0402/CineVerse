@@ -169,7 +169,7 @@
                   <label for="genres" class="form-label text-light">Thể loại (chọn nhiều)</label>
                   <select class="form-select custom-input" id="genres" v-model="movieForm.genres" multiple>
                     <option v-for="genre in availableGenres" :key="genre.genre_id" :value="genre.genre_id">{{ genre.name
-                      }}
+                    }}
                     </option>
                   </select>
                   <small class="form-text text-light">Giữ Ctrl/Cmd để chọn nhiều.</small>
@@ -469,6 +469,10 @@ watch(() => authStore.isAdmin, (newVal) => {
 /* Theme và biến màu */
 .admin-movie-management-page {
   background-color: var(--deep-space-black);
+  background-image: linear-gradient(175deg,
+      rgba(46, 115, 232, 0.1) -10%,
+      rgba(90, 66, 212, 0.15) 40%,
+      var(--deep-space-black) 80%);
 }
 
 .loading-container {

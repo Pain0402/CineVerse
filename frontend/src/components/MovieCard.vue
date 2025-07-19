@@ -8,7 +8,7 @@
           <i class="fa-solid fa-star"></i>
           {{ movie.averageRating || 'N/A' }}
         </span>
-        <button class="badge bg-secondary">add</button>
+        <button class="badge bg-secondary add">+</button>
       </div>
     </div>
   </RouterLink>
@@ -32,7 +32,6 @@ const handleImageError = (event) => {
 </script>
 
 <style scoped>
-/* Sao chép toàn bộ CSS của .movie-card từ HomeView.vue vào đây */
 .movie-card {
   flex: 0 0 auto;
   width: 220px;
@@ -42,11 +41,9 @@ const handleImageError = (event) => {
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: rgba(245, 245, 250, 0.05);
-  /* --surface-glass */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(245, 245, 250, 0.2);
-  /* --border-glass */
 }
 
 .movie-card:hover {
@@ -60,7 +57,6 @@ const handleImageError = (event) => {
   height: 300px;
   object-fit: cover;
   border-bottom: 1px solid rgba(245, 245, 250, 0.2);
-  /* --border-glass */
 }
 
 .movie-card .card-body {
@@ -74,6 +70,14 @@ const handleImageError = (event) => {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #F5F5FA;
-  /* --nebula-white */
+}
+
+.movie-card .badge {
+  background-color: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
 }
 </style>

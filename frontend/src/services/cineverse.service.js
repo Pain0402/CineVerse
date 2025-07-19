@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 
 // Cấu hình Axios instance
 const apiClient = axios.create({
-  baseURL: '/api', // Sử dụng proxy đã cấu hình trong vite.config.js
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -200,6 +200,15 @@ const cineverseService = {
   async getAllGenres() {
     // Endpoint: GET /genres
     return await apiClient.get('/genres')
+  },
+
+  // --- Upload avatar ---
+  uploadAvatar(formData) {
+    return apiClient.post('/profile/avatar', formData, {
+      headers: {
+        'Content-Type': formData instanceof FormData ? 'multipart/form-data' : 'application/json',
+      },
+    })
   },
 }
 
