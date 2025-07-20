@@ -13,18 +13,4 @@ import AppFooter from '@/components/AppFooter.vue';
 import AppNavbar from '@/components/AppNavbar.vue';
 </script>
 
-<style>
-/* :root {
-  --galaxy-purple: #5A42D4;
-  --cosmic-blue: #2E73E8;
-  --starlight-yellow: #FFD94D;
-  --deep-space-black: #0D0C1D;
-  --nebula-white: #F5F5FA;
-  --surface-glass: rgba(245, 245, 250, 0.05);
-  --border-glass: rgba(245, 245, 250, 0.2);
-
-  color: var(--nebula-white);
-  font-family: 'Be Vietnam Pro', sans-serif;
-  min-height: 100vh;
-} */
-</style>
+<style></style>

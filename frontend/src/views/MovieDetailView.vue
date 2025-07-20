@@ -20,7 +20,7 @@
     <!-- Nội dung chính khi đã có dữ liệu -->
     <div v-else-if="movie">
       <!-- Banner Phim -->
-      <header class="movie-banner" :style="{ backgroundImage: `url(${movie.backdrop_url || movie.poster_url})` }">
+      <header class="movie-banner" :style="{ backgroundImage: bannerImage }">
         <!-- ... code banner giữ nguyên ... -->
         <div class="banner-overlay">
           <div class="container">
@@ -39,9 +39,9 @@
                   </div>
                   <span class="meta-info">{{ movie.release_year }}</span>
                   <span class="meta-info" v-if="movie.runtime_minutes">{{ formatDuration(movie.runtime_minutes)
-                  }}</span>
+                    }}</span>
                   <span class="meta-info" v-if="movie.episode_count && movie.type !== 'movie'">{{ movie.episode_count
-                  }}
+                    }}
                     tập</span>
                 </div>
                 <div class="genres my-3">
@@ -70,8 +70,7 @@
                       <div class="row g-3 align-items-end">
                         <div class="col-md-6">
                           <label for="watchlistStatus" class="form-label small text-muted">Trạng thái:</label>
-                          <select class="form-select custom-select" id="watchlistStatus"
-                            v-model="watchlistForm.status">
+                          <select class="form-select custom-select" id="watchlistStatus" v-model="watchlistForm.status">
                             <option value="watching">Đang xem</option>
                             <option value="completed">Đã xem</option>
                             <option value="plan_to_watch">Muốn xem</option>
@@ -81,8 +80,7 @@
                         <div class="col-md-3" v-if="movie.type === 'tv_series' || movie.type === 'anime_tv'">
                           <label for="currentEpisode" class="form-label small text-muted">Tập hiện tại:</label>
                           <input type="number" class="form-control custom-input" id="currentEpisode"
-                            v-model.number="watchlistForm.currentEpisode" min="0"
-                            :max="movie.episode_count || 9999" />
+                            v-model.number="watchlistForm.currentEpisode" min="0" :max="movie.episode_count || 9999" />
                         </div>
                         <div class="col-md-3">
                           <button class="btn gradient-button w-100" @click="handleUpdateWatchlist"
@@ -126,34 +124,27 @@
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="section-title mb-0">Bình luận & Đánh giá ({{ reviews.length }})</h3>
                 <!-- Nút "Viết đánh giá" chỉ hiện khi người dùng chưa review phim này -->
-                <button v-if="authStore.isAuthenticated && !isWritingReview && !userHasReviewed" @click="isWritingReview = true" class="btn btn-accent">
+                <button v-if="authStore.isAuthenticated && !isWritingReview && !userHasReviewed"
+                  @click="isWritingReview = true" class="btn btn-accent">
                   <i class="fa-solid fa-pen-to-square me-2"></i>
                   Viết đánh giá
                 </button>
               </div>
 
               <!-- Form viết/sửa đánh giá -->
-              <ReviewForm 
-                v-if="isWritingReview" 
-                :is-submitting="isSubmittingReview"
-                @submit-review="handleReviewSubmit"
-                @cancel="isWritingReview = false"
-              />
+              <ReviewForm v-if="isWritingReview" :is-submitting="isSubmittingReview" @submit-review="handleReviewSubmit"
+                @cancel="isWritingReview = false" />
 
               <div class="review-box glass-surface p-4 rounded-3">
-                <div v-if="reviews.length === 0 && !isWritingReview" class="text-center text-muted p-3">Chưa có đánh giá nào. Hãy là người đầu tiên!</div>
-                
+                <div v-if="reviews.length === 0 && !isWritingReview" class="text-center text-muted p-3">Chưa có đánh giá
+                  nào. Hãy là người đầu tiên!</div>
+
                 <!-- Hiển thị danh sách review -->
                 <div v-for="(review, index) in reviews" :key="review.review_id" class="review-item mb-4">
                   <!-- Form CHỈNH SỬA review -->
-                  <ReviewForm
-                    v-if="editingReviewId === review.review_id"
-                    :is-submitting="isSubmittingReview"
-                    :initial-comment="review.comment"
-                    :initial-rating="review.rating"
-                    @submit-review="handleUpdateReviewSubmit"
-                    @cancel="editingReviewId = null"
-                  />
+                  <ReviewForm v-if="editingReviewId === review.review_id" :is-submitting="isSubmittingReview"
+                    :initial-comment="review.comment" :initial-rating="review.rating"
+                    @submit-review="handleUpdateReviewSubmit" @cancel="editingReviewId = null" />
                   <!-- Hiển thị review thông thường -->
                   <div v-else>
                     <div class="d-flex justify-content-between align-items-start">
@@ -174,8 +165,10 @@
                     <p class="mt-2 mb-2">{{ review.comment }}</p>
                     <!-- SỬA ĐỔI: Nút Sửa/Xóa chỉ hiện cho chủ nhân của review -->
                     <div v-if="authStore.currentUser?.user_id === review.user_id" class="review-actions mt-2">
-                      <button class="btn btn-sm btn-link-light me-2" @click="editingReviewId = review.review_id">Sửa</button>
-                      <button class="btn btn-sm btn-link-danger" @click="handleDeleteReview(review.review_id, index)">Xóa</button>
+                      <button class="btn btn-sm btn-link-light me-2"
+                        @click="editingReviewId = review.review_id">Sửa</button>
+                      <button class="btn btn-sm btn-link-danger"
+                        @click="handleDeleteReview(review.review_id, index)">Xóa</button>
                     </div>
                   </div>
                 </div>
@@ -250,6 +243,25 @@ const handleReviewSubmit = async (reviewData) => {
     isSubmittingReview.value = false;
   }
 };
+
+const imageUrls = [
+  'https://wallpapers.com/images/high/earth-in-the-universe-a879b6hwwtbywot0.webp',
+  'https://wallpapers.com/images/high/massive-glowing-black-hole-in-outer-space-qngqcv0ctzmhbqin.webp',
+  'https://wallpapers.com/images/high/glimmering-view-of-jupiter-s-swirling-storms-from-orbit-dhl1zqfocnm26ot8.webp',
+  'https://wallpapers.com/images/high/mysterious-exoplanet-orbiting-in-a-vibrant-cosmic-galaxy-with-glowing-nebulae-and-distant-stars-zfrdrrubov679nsw.webp',
+  'https://wallpapers.com/images/high/void-5sm9tokk2youui90.webp',
+  'https://wallpapers.com/images/hd/tree-and-vast-universe-hk1a2py5d3x1tpgf.webp',
+  'https://cdn.pixabay.com/photo/2018/08/15/13/10/new-year-background-3608029_1280.jpg'
+];
+
+// 2. Lấy một URL ngẫu nhiên
+const randomIndex = Math.floor(Math.random() * imageUrls.length);
+const selectedUrl = imageUrls[randomIndex];
+
+// 3. Tạo một biến reactive 'ref' để lưu trữ URL và cung cấp cho template.
+//    Logic này sẽ chạy một lần khi component được thiết lập.
+const bannerImage = ref(`url(${selectedUrl})`);
+
 
 const handleUpdateReviewSubmit = async (reviewData) => {
   if (!editingReviewId.value) return;
@@ -600,17 +612,31 @@ watch(() => authStore.isAuthenticated, () => {
   font-weight: 500;
   flex-shrink: 0;
 }
+
 .review-actions {
   text-align: right;
 }
-.btn-link-light, .btn-link-danger {
+
+.btn-link-light,
+.btn-link-danger {
   text-decoration: none;
   font-weight: 500;
   padding: 0.25rem 0.5rem;
 }
-.btn-link-light { color: var(--nebula-white); }
-.btn-link-light:hover { color: var(--starlight-yellow); }
-.btn-link-danger { color: #dc3545; }
-.btn-link-danger:hover { color: #ff5b6c; }
 
+.btn-link-light {
+  color: var(--nebula-white);
+}
+
+.btn-link-light:hover {
+  color: var(--starlight-yellow);
+}
+
+.btn-link-danger {
+  color: #dc3545;
+}
+
+.btn-link-danger:hover {
+  color: #ff5b6c;
+}
 </style>

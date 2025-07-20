@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+const API_BASE_URL = import.meta.env.PROD ? import.meta.env.VITE_APP_API_URL : '/api'
 
 // Cấu hình Axios instance
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

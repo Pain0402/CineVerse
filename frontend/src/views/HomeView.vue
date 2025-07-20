@@ -24,9 +24,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-// 1. Import cineverseService và RouterLink
 import cineverseService from '@/services/cineverse.service'; // <-- Đảm bảo đường dẫn này đúng
-// import { RouterLink } from 'vue-router';
 import MovieList from '@/components/MovieList.vue';
 import HeroSlider from '@/components/HeroSlider.vue';
 
@@ -68,7 +66,6 @@ const fetchAllMovies = async () => {
       cineverseService.getMovies({ limit: 10, sortBy: 'average_rating' }),
       cineverseService.getMovies({ genre: 'anime', limit: 10 }),
     ]);
-
     // 4. Ánh xạ dữ liệu từ API sang định dạng mà template đang sử dụng
     const mapApiData = (movie) => ({
       id: movie.movie_id,
@@ -77,9 +74,14 @@ const fetchAllMovies = async () => {
       averageRating: movie.average_rating,
     });
 
-    trendingMovies.value = trendingData.map(mapApiData);
-    topRatedMovies.value = topRatedData.map(mapApiData);
-    animeMovies.value = animeData.map(mapApiData);
+    // trendingMovies.value = trendingData.map(mapApiData);
+    // topRatedMovies.value = topRatedData.map(mapApiData);
+    // animeMovies.value = animeData.map(mapApiData);
+    trendingMovies.value = (Array.isArray(trendingData) ? trendingData : trendingData.movies || []).map(mapApiData);
+    topRatedMovies.value = (Array.isArray(topRatedData) ? topRatedData : topRatedData.movies || []).map(mapApiData);
+    animeMovies.value = (Array.isArray(animeData) ? animeData : animeData.movies || []).map(mapApiData);
+
+    console.log("Trending Data: " + trendingData);
 
   } catch (err) {
     // Bắt lỗi và hiển thị thông báo
@@ -109,7 +111,6 @@ onMounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* background-image: url(https://cdn.pixabay.com/photo/2018/08/15/13/10/new-year-background-3608029_1280.jpg); */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
