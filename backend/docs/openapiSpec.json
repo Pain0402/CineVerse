@@ -28,6 +28,10 @@
     {
       "name": "Watchlists",
       "description": "User watchlists"
+    },
+    {
+      "name": "Genres",
+      "description": "Operations related to genres"
     }
   ],
   "paths": {
@@ -1417,6 +1421,109 @@
           }
         }
       }
+    },
+    "/genres": {
+      "get": {
+        "tags": [
+          "Genres"
+        ],
+        "summary": "Get all genres",
+        "description": "Retrieves a list of all available movie and anime genres.",
+        "responses": {
+          "200": {
+            "description": "A list of genres.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenresListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/avatar": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Upload user avatar",
+        "description": "Allows an authenticated user to upload or update their profile avatar.",
+        "security": [{
+          "bearerAuth": []
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The avatar image file (e.g., jpg, png)."
+                  }
+                },
+                "required": ["avatar"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Avatar uploaded successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvatarUploadSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file provided or invalid file type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1908,6 +2015,46 @@
           "status",
           "message"
         ]
+      },
+      "Genre": {
+        "type": "object",
+        "properties": {
+          "genre_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "GenresListResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Genre"
+            }
+          }
+        }
+      },
+      "AvatarUploadSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Upload avatar thành công!"
+          },
+          "avatar_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "http://localhost:3000/uploads/avatars/userId-timestamp.jpg"
+          }
+        }
       }
     },
     "responses": {
@@ -1948,6 +2095,6 @@
     }
   },
   "security": [{
-    "bearerAuth": [123]
+    "bearerAuth": []
   }]
 }

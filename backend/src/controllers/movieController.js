@@ -64,7 +64,6 @@ const MovieController = {
         },
       });
     } catch (err) {
-      console.error("Lỗi khi lấy danh sách phim:", err);
       return res
         .status(500)
         .json({ error: "Đã xảy ra lỗi khi lấy dữ liệu phim." });
@@ -94,13 +93,6 @@ const MovieController = {
 
   createMovie: async (req, res, next) => {
     try {
-      if (req.user.role !== "admin") {
-        return res.status(403).json({
-          status: "fail",
-          message: "Forbidden: Only admins can add movies",
-        });
-      }
-
       const newMovie = await MovieService.createMovie(req.body);
       res.status(201).json({
         status: "success",
@@ -113,13 +105,6 @@ const MovieController = {
 
   updateMovie: async (req, res, next) => {
     try {
-      if (req.user.role !== "admin") {
-        return res.status(403).json({
-          status: "fail",
-          message: "Forbidden: Only admins can update movies",
-        });
-      }
-
       const { id } = req.params;
       const updatedMovie = await MovieService.updateMovie(id, req.body);
 
@@ -141,13 +126,6 @@ const MovieController = {
 
   deleteMovie: async (req, res, next) => {
     try {
-      if (req.user.role !== "admin") {
-        return res.status(403).json({
-          status: "fail",
-          message: "Forbidden: Only admins can delete movies",
-        });
-      }
-
       const { id } = req.params;
       await MovieService.deleteMovie(id);
       res.status(204).send(); // 204 No Content for successful deletion
