@@ -1,5 +1,6 @@
 const MovieModel = require("../models/movieModel");
 
+const AppError = require("../utils/AppError");
 const MovieService = {
   getAllMovies: async (filters) => {
     return MovieModel.findAll(filters);
@@ -8,7 +9,7 @@ const MovieService = {
   getMovieById: async (id) => {
     const movie = await MovieModel.findById(id);
     if (!movie) {
-      throw new Error("Movie not found");
+      throw new AppError("Movie not found", 404);
     }
     return movie;
   },
@@ -20,7 +21,7 @@ const MovieService = {
   updateMovie: async (id, updateData) => {
     const movie = await MovieModel.findById(id);
     if (!movie) {
-      throw new Error("Movie not found");
+      throw new AppError("Movie not found", 404);
     }
     return MovieModel.update(id, updateData);
   },
@@ -28,7 +29,7 @@ const MovieService = {
   deleteMovie: async (id) => {
     const movie = await MovieModel.findById(id);
     if (!movie) {
-      throw new Error("Movie not found");
+      throw new AppError("Movie not found", 404);
     }
     return MovieModel.delete(id);
   },

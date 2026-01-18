@@ -64,9 +64,7 @@ const MovieController = {
         },
       });
     } catch (err) {
-      return res
-        .status(500)
-        .json({ error: "Đã xảy ra lỗi khi lấy dữ liệu phim." });
+      next(err);
     }
   },
 
@@ -74,13 +72,6 @@ const MovieController = {
     try {
       const { id } = req.params;
       const movie = await MovieService.getMovieById(id);
-
-      if (!movie) {
-        return res.status(404).json({
-          status: "fail",
-          message: "Movie not found",
-        });
-      }
 
       res.status(200).json({
         status: "success",
@@ -107,13 +98,6 @@ const MovieController = {
     try {
       const { id } = req.params;
       const updatedMovie = await MovieService.updateMovie(id, req.body);
-
-      if (!updatedMovie) {
-        return res.status(404).json({
-          status: "fail",
-          message: "Movie not found",
-        });
-      }
 
       res.status(200).json({
         status: "success",
