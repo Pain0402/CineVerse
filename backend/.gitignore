@@ -27,3 +27,9 @@ web_modules/
 *.idea/
 coverage/
 dist/
+
+# Uploads (Ignore files but keep directory structure)
+public/uploads/*
+!public/uploads/avatars/
+public/uploads/avatars/*
+!public/uploads/avatars/.gitkeep
